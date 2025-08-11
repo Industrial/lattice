@@ -55,7 +55,7 @@ minimal = ["tokio/rt"]
 
 [lib]
 name = "lattice_pm"
-crate-type = ["lib", "rlib"]
+crate-type = ["lib"]
 
 [[bin]]
 name = "lattice"

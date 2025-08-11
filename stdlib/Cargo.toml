@@ -42,4 +42,4 @@ testing = ["proptest", "criterion"]
 
 [lib]
 name = "lattice_stdlib"
-crate-type = ["lib", "rlib"] 
+crate-type = ["lib"] 

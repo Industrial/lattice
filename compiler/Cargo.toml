@@ -55,7 +55,7 @@ testing = ["proptest", "insta"]
 
 [lib]
 name = "lattice_compiler"
-crate-type = ["lib", "rlib"]
+crate-type = ["lib"]
 
 [[bin]]
 name = "latticec"
