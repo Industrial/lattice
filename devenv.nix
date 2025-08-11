@@ -43,6 +43,7 @@
 
     # TaskMaster AI dependencies
     bun
+    nodejs_latest
   ];
 
   # Pre-commit hooks
