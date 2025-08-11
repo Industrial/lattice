@@ -1,0 +1,345 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Setup Project Repository and Build System",
+        "description": "Initialize the project repository with a Rust-based structure for the compiler and package manager components, including necessary build configurations.",
+        "details": "Create a new Rust workspace with the following crates: `lattice-compiler`, `lattice-pm`, and `lattice-stdlib`. Set up Cargo.toml files with appropriate dependencies including: rustc_version (^0.4.0), clap (^4.4.6) for CLI, codespan-reporting (^0.11.1) for error reporting, wasm-encoder (^0.33.0) for WASM generation, and wasmtime (^13.0.0) for runtime testing. Configure GitHub Actions for CI/CD with Rust toolchain setup, testing, and linting. Initialize a basic project structure with src/ directories for each crate and include README.md with project overview. Set up unit and integration test frameworks using Rust's built-in testing capabilities.",
+        "testStrategy": "Verify that the repository structure is correctly set up by running `cargo check` and `cargo test` to ensure all components compile without errors. Test the CI/CD pipeline by making a small change and ensuring the automated tests run successfully.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "Implement Lexer for Lattice Syntax",
+        "description": "Create a lexical analyzer (lexer) that converts Lattice source code into a stream of tokens for parsing.",
+        "details": "Implement a lexer using Rust's strong pattern matching capabilities. Define token types in an enum including: Keywords (let, fn, if, match, effect, handle), Identifiers, Literals (Int, Float, String, Bool), Operators, Delimiters, and Comments. Use the logos crate (^0.13.0) for efficient lexing. The lexer should handle Unicode correctly and maintain source location information (line, column) for error reporting. Implement proper error recovery to continue lexing after encountering invalid tokens. Support for multi-line comments and string literals with proper escaping. The lexer should be implemented as a separate module in the lattice-compiler crate with a clean API that returns an iterator of tokens.",
+        "testStrategy": "Create unit tests with various Lattice code snippets to verify correct tokenization. Test edge cases like empty files, files with only whitespace, and files with invalid characters. Implement property-based testing using proptest (^1.2.0) to generate random valid and invalid inputs. Benchmark lexer performance on large files to ensure efficiency.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Design and Implement Parser for Lattice Syntax",
+        "description": "Create a parser that converts the token stream into an Abstract Syntax Tree (AST) representing the structure of Lattice programs.",
+        "details": "Implement a recursive descent parser using the tokens produced by the lexer. Define AST node types for all language constructs: Function definitions, Let bindings, Pattern matching, Algebraic data type declarations, Effect declarations and handlers, and Expressions (function application, literals, etc.). Use the chumsky crate (^0.9.2) for parser combinators to simplify implementation. The parser should maintain source location information for error reporting. Implement proper error recovery to continue parsing after encountering syntax errors. The parser should validate basic syntactic constraints but defer semantic analysis to later phases. Implement a visitor pattern for traversing the AST. The parser module should provide a clean API that takes a token stream and returns a typed AST or detailed error information.",
+        "testStrategy": "Create unit tests with various Lattice code snippets to verify correct parsing. Test edge cases like empty programs, minimal valid programs, and programs with complex nested structures. Test error recovery by introducing syntax errors and verifying the parser can continue. Implement round-trip tests that parse code, pretty-print the AST, and verify the result parses to the same structure.",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Implement Basic Type System and Type Representation",
+        "description": "Design and implement the core type system data structures and basic type checking functionality for Lattice.",
+        "details": "Create data structures to represent Lattice's type system: Primitive types (Int, Float, Bool, String), Function types, Type variables for inference, Algebraic data types (product and sum types), and Effect types. Implement type equality and unification algorithms. Create a type environment structure to track bindings of identifiers to types. Implement substitution for type variables. Design the type representation to support efficient manipulation during inference. Use immutable data structures from im crate (^15.1.0) for persistent type environments. Implement pretty-printing for types to display them in error messages. The type system should be implemented as a separate module in the lattice-compiler crate with a clean API for type manipulation.",
+        "testStrategy": "Create unit tests for type equality, unification, and substitution. Test with various type combinations including primitive types, function types, and type variables. Verify that type pretty-printing produces correct and readable output. Test edge cases like recursive types and complex nested types.",
+        "priority": "high",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Implement Hindley-Milner Type Inference",
+        "description": "Implement the Hindley-Milner type inference algorithm to automatically infer types for Lattice programs.",
+        "details": "Implement Algorithm W for Hindley-Milner type inference. Create a type checker that traverses the AST and infers types for all expressions. Implement generalization and instantiation for polymorphic types. Handle let-polymorphism correctly. Implement occurs check to prevent infinite types. Generate clear error messages for type errors with source location information. Use the codespan-reporting crate for formatting error messages. The inference algorithm should annotate the AST with inferred types. Support for type annotations in the source code to guide inference. The type inference should be implemented as a separate phase after parsing in the compiler pipeline.",
+        "testStrategy": "Create unit tests with various Lattice code snippets to verify correct type inference. Test edge cases like polymorphic functions, higher-order functions, and recursive functions. Test error cases like type mismatches and occurs check failures. Verify that error messages are clear and helpful. Implement property-based testing to generate random well-typed programs and verify the inferred types.",
+        "priority": "high",
+        "dependencies": [
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Implement Algebraic Data Type Support",
+        "description": "Add support for defining and using algebraic data types (ADTs) in Lattice, including pattern matching.",
+        "details": "Extend the parser to support ADT declarations with type parameters. Implement type checking for ADT constructors and pattern matching. Add support for record types with named fields. Implement exhaustiveness checking for pattern matching. Support for nested patterns and or-patterns. Add type inference for pattern matching expressions. Implement desugaring of pattern matching to simpler constructs for code generation. The ADT support should be integrated with the existing type system. Update the AST to include nodes for ADT declarations and pattern matching. Ensure proper scoping of type variables in ADT declarations.",
+        "testStrategy": "Create unit tests with various ADT declarations and pattern matching expressions. Test edge cases like recursive ADTs, polymorphic ADTs, and complex nested patterns. Test exhaustiveness checking with complete and incomplete patterns. Verify that error messages for non-exhaustive patterns are clear and helpful.",
+        "priority": "medium",
+        "dependencies": [
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Design and Implement Intermediate Representation (IR)",
+        "description": "Create an intermediate representation for Lattice programs that is suitable for optimization and code generation.",
+        "details": "Design an IR that captures the semantics of Lattice programs in a form that's easier to optimize and translate to WASM. The IR should be in A-normal form or similar to simplify analysis and transformation. Implement conversion from the typed AST to the IR. Include representations for: Function definitions and applications, Let bindings, Pattern matching (desugared), Primitive operations, and Control flow. The IR should preserve type information from the AST. Implement basic optimizations on the IR: Constant folding, Dead code elimination, and Inlining. The IR should be designed to facilitate WASM code generation. Implement a visitor pattern for traversing and transforming the IR.",
+        "testStrategy": "Create unit tests that convert AST to IR and verify the structure. Test optimizations by comparing IR before and after optimization. Implement round-trip tests that convert AST to IR and back, verifying semantic equivalence. Test with various language constructs to ensure correct translation.",
+        "priority": "high",
+        "dependencies": [
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Implement Basic WASM Code Generation",
+        "description": "Create a code generator that translates the IR to WebAssembly modules for simple Lattice programs.",
+        "details": "Implement a code generator that translates the IR to WebAssembly using the wasm-encoder crate. Start with support for basic features: Integer and floating-point arithmetic, Local variables and function parameters, Function definitions and calls, and Simple control flow (if/else). Generate WASM modules with proper imports and exports. Implement a memory management strategy using reference counting for non-primitive values. Use WASM's linear memory for heap-allocated data. Generate appropriate type signatures for functions. The code generator should be implemented as a separate phase after IR generation in the compiler pipeline. Focus on correctness first, then optimize for size and performance.",
+        "testStrategy": "Create unit tests that compile simple Lattice programs to WASM and execute them using wasmtime. Verify that the generated WASM modules produce correct results for various inputs. Test edge cases like empty functions, functions with many parameters, and deeply nested expressions. Implement integration tests that compile and run complete programs.",
+        "priority": "high",
+        "dependencies": [
+          7
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Implement Standard Library Core Types",
+        "description": "Define and implement the core types for the Lattice standard library, including Bool, Option, Result, and List.",
+        "details": "Create a standard library module with definitions for core types: Bool (true/false with logical operations), Option (Some/None for optional values), Result (Ok/Err for error handling), and List (Nil/Cons for sequences). Implement basic operations for each type: map, filter, fold, etc. for List; and, or, not for Bool; map, getOrElse for Option; map, mapErr, and for Result. Ensure all implementations are pure functional. Write the standard library in Lattice itself once the compiler supports self-hosting, but start with a Rust implementation that generates the appropriate WASM. Use algebraic data types for all definitions. Ensure the standard library is well-documented with examples and type signatures.",
+        "testStrategy": "Create unit tests for each standard library function to verify correct behavior. Test edge cases like empty lists, None values, and error cases. Implement property-based tests for functions like map, filter, and fold. Verify that the standard library can be imported and used in Lattice programs.",
+        "priority": "medium",
+        "dependencies": [
+          6,
+          8
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Implement Module System and Imports",
+        "description": "Add support for modules and imports to enable code organization and reuse in Lattice programs.",
+        "details": "Extend the parser to support module declarations and import statements. Implement a module system that allows organizing code into separate files. Support for importing specific items from modules. Implement proper scoping of imported names. Add support for qualified imports. Implement resolution of import paths relative to the current file and project root. Update the compiler pipeline to handle multiple input files. The module system should integrate with the package manager for resolving external dependencies. Ensure proper handling of cyclic imports. The module system should be designed to work well with the WASM module system.",
+        "testStrategy": "Create unit tests with multiple Lattice files that import from each other. Test various import patterns including specific imports, qualified imports, and re-exports. Test error cases like missing imports and cyclic imports. Verify that imported names are correctly resolved during type checking and code generation.",
+        "priority": "medium",
+        "dependencies": [
+          8
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 11,
+        "title": "Implement Algebraic Effects System",
+        "description": "Design and implement algebraic effects and handlers for managing side effects in Lattice programs.",
+        "details": "Extend the type system to support effect types and effect polymorphism. Implement effect inference to track effect usage. Add syntax for effect declarations, operations, and handlers. Implement desugaring of effect operations and handlers to continuation-passing style or similar for code generation. Support for resumable exceptions using effect handlers. Implement proper scoping of effect handlers. Ensure effect handlers compose correctly. The effects system should be integrated with the existing type system and inference algorithm. Update the IR to represent effect operations and handlers. Implement standard effects for IO, State, and Exception handling in the standard library.",
+        "testStrategy": "Create unit tests with various effect declarations, operations, and handlers. Test composition of multiple effect handlers. Test effect polymorphism with functions that use different effects. Verify that effect inference correctly tracks effect usage. Test error cases like unhandled effects and type errors in effect operations.",
+        "priority": "medium",
+        "dependencies": [
+          5,
+          7
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 12,
+        "title": "Implement Basic CLI for Compiler",
+        "description": "Create a command-line interface for the Lattice compiler with basic functionality for compiling Lattice programs to WASM.",
+        "details": "Implement a CLI using the clap crate with commands for: Compiling Lattice files to WASM (lattice-compiler build), Type checking without code generation (lattice-compiler check), and Displaying version and help information. Add options for output file specification, optimization level, and target environment (browser/server). Implement proper error handling and reporting using codespan-reporting. Add verbose mode for debugging compiler issues. Support for specifying multiple input files. The CLI should provide clear and helpful error messages for both compiler errors and user input errors. Implement colorized output for better readability.",
+        "testStrategy": "Create integration tests that invoke the CLI with various arguments and verify the output. Test error cases like invalid arguments, missing files, and compilation errors. Test the CLI with real Lattice programs to verify end-to-end functionality. Verify that error messages are clear and helpful.",
+        "priority": "medium",
+        "dependencies": [
+          8
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 13,
+        "title": "Implement Advanced WASM Code Generation",
+        "description": "Enhance the WASM code generator to support advanced Lattice features and optimize the generated code.",
+        "details": "Extend the code generator to support: Algebraic data types and pattern matching, Closures and higher-order functions, Tail call optimization where possible, and Efficient memory management. Implement optimizations for the generated WASM: Minimize code size, Reduce memory usage, and Improve execution speed. Use WASM features like tables for function pointers. Implement proper handling of recursive functions and data structures. Generate appropriate runtime checks for array bounds and null pointers. The code generator should produce WASM that works well in both browser and server environments. Implement different code generation strategies based on the target environment.",
+        "testStrategy": "Create unit tests that compile complex Lattice programs to WASM and execute them. Verify that the generated WASM modules produce correct results for various inputs. Benchmark the generated code for performance and size. Test with real-world use cases to ensure practical usability. Verify that optimizations improve performance without changing semantics.",
+        "priority": "medium",
+        "dependencies": [
+          8,
+          11
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Implement Package Manager Core Functionality",
+        "description": "Create the core functionality for the Lattice package manager (lattice-pm) to manage dependencies and project structure.",
+        "details": "Implement a package manager using Rust with commands for: Creating new projects (lattice-pm init), Adding dependencies (lattice-pm add), and Building projects (lattice-pm build). Define a package manifest format (Lattice.toml) using the toml crate (^0.7.6) with fields for: Package metadata (name, version, authors), Dependencies with version constraints, and Build configuration. Implement dependency resolution using semantic versioning. Support for fetching packages from a registry or Git repositories. Implement proper error handling and reporting. The package manager should integrate with the compiler for building projects. Implement caching of dependencies for faster builds. Support for development dependencies and optional dependencies.",
+        "testStrategy": "Create integration tests that invoke the package manager with various commands and verify the output. Test dependency resolution with various version constraints. Test error cases like missing dependencies and version conflicts. Test the package manager with real projects to verify end-to-end functionality. Verify that error messages are clear and helpful.",
+        "priority": "medium",
+        "dependencies": [
+          12
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 15,
+        "title": "Implement Error Handling and Reporting System",
+        "description": "Create a comprehensive error handling and reporting system for the Lattice compiler and package manager.",
+        "details": "Implement a structured error representation that captures: Error type and severity, Source location information, Contextual information for debugging, and Suggestions for fixing the error. Use the codespan-reporting crate for formatting error messages with source code snippets. Implement error recovery in the parser and type checker to report multiple errors in a single run. Add warnings for potential issues that aren't errors. Implement clear and helpful error messages for common mistakes. The error reporting system should be consistent across all compiler phases. Add an option to output errors in machine-readable format (JSON) for IDE integration. Implement colorized output for better readability.",
+        "testStrategy": "Create unit tests for various error scenarios and verify the generated error messages. Test error recovery by introducing multiple errors in a single program. Verify that error messages include helpful suggestions where appropriate. Test with real-world mistakes to ensure the error messages are practical and useful.",
+        "priority": "medium",
+        "dependencies": [
+          5,
+          12
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 16,
+        "title": "Implement REPL (Read-Eval-Print Loop)",
+        "description": "Create an interactive REPL for Lattice to allow users to experiment with the language.",
+        "details": "Implement a REPL using the rustyline crate (^11.0.0) for line editing and history. The REPL should support: Evaluating Lattice expressions and statements, Displaying the type of expressions (:type command), Showing help and documentation (:help command), and Loading files (:load command). Implement proper error handling and recovery to continue after errors. Add syntax highlighting for input using the syntect crate (^5.1.0). Implement tab completion for language keywords and defined identifiers. The REPL should maintain a persistent environment across inputs. Support for multiline input for defining functions and types. Implement a :quit command to exit the REPL. The REPL should compile expressions to WASM and execute them using wasmtime.",
+        "testStrategy": "Create integration tests that simulate REPL interactions and verify the output. Test various commands and expressions. Test error cases and recovery. Test multiline input and environment persistence. Verify that the REPL provides a good interactive experience with helpful feedback.",
+        "priority": "low",
+        "dependencies": [
+          13,
+          15
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 17,
+        "title": "Implement Browser Integration",
+        "description": "Create tools and libraries for integrating Lattice WASM modules with web browsers.",
+        "details": "Implement a JavaScript library for loading and interacting with Lattice WASM modules in browsers. The library should provide: Easy loading of WASM modules, Type-safe function calling, Conversion between JavaScript and Lattice values, and Error handling. Generate TypeScript definitions for better IDE support. Implement a small runtime for memory management and garbage collection. Create examples of using Lattice in web applications. Support for DOM manipulation through effect handlers. The browser integration should work with modern browsers and bundlers like webpack, rollup, and esbuild. Implement proper documentation with examples. Use wasm-bindgen concepts but implement a custom solution tailored for Lattice's type system and effects.",
+        "testStrategy": "Create unit tests for the JavaScript library using Jest. Test loading WASM modules and calling functions. Test conversion between JavaScript and Lattice values. Create integration tests with real web applications. Test with various browsers to ensure compatibility. Verify that error handling works correctly for runtime errors.",
+        "priority": "medium",
+        "dependencies": [
+          13
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 18,
+        "title": "Implement Server Integration with Wasmtime",
+        "description": "Create tools and libraries for integrating Lattice WASM modules with server environments using Wasmtime.",
+        "details": "Implement a Rust library for loading and interacting with Lattice WASM modules in server environments. The library should provide: Easy loading of WASM modules using wasmtime, Type-safe function calling, Conversion between Rust and Lattice values, and Error handling. Implement a small runtime for memory management and garbage collection. Create examples of using Lattice in server applications. Support for common server operations through effect handlers. The server integration should work with popular Rust web frameworks like actix-web, warp, and rocket. Implement proper documentation with examples. The library should be published to crates.io for easy integration.",
+        "testStrategy": "Create unit tests for the Rust library. Test loading WASM modules and calling functions. Test conversion between Rust and Lattice values. Create integration tests with real server applications. Test performance under load to ensure efficiency. Verify that error handling works correctly for runtime errors.",
+        "priority": "medium",
+        "dependencies": [
+          13
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 19,
+        "title": "Implement Testing Framework",
+        "description": "Create a testing framework for Lattice programs to enable test-driven development.",
+        "details": "Implement a testing framework as part of the standard library with functions for: Defining test cases, Making assertions, Setting up and tearing down test fixtures, and Generating test reports. Create a test runner command in the package manager (lattice-pm test). Support for different test types: Unit tests, Property-based tests, and Integration tests. Implement test discovery to automatically find and run tests. The testing framework should provide clear and helpful error messages for test failures. Support for test filtering to run specific tests. Implement test coverage reporting. The testing framework should be implemented in Lattice itself once the compiler supports self-hosting.",
+        "testStrategy": "Create meta-tests that test the testing framework itself. Test various assertion types and test case definitions. Test error reporting for test failures. Test the test runner with real projects. Verify that test reports are clear and helpful.",
+        "priority": "low",
+        "dependencies": [
+          9,
+          14
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 20,
+        "title": "Implement Documentation Generator",
+        "description": "Create a documentation generator for Lattice programs to generate API documentation.",
+        "details": "Implement a documentation generator that extracts documentation from Lattice source code. Support for markdown in documentation comments. Generate HTML documentation with: Type signatures, Function descriptions, Example code, and Cross-references. Create a documentation server command (lattice-pm docs serve). Implement search functionality in the generated documentation. Support for custom themes and styling. The documentation generator should extract information from the typed AST to ensure accuracy. Generate documentation for the standard library as a reference. Support for generating documentation for entire packages. The documentation format should be similar to modern tools like Rustdoc or Haddock.",
+        "testStrategy": "Create unit tests for documentation extraction and generation. Test with various documentation styles and formats. Test the generated HTML for correctness and usability. Test the documentation server. Verify that cross-references work correctly. Test with real projects to ensure practical usability.",
+        "priority": "low",
+        "dependencies": [
+          9,
+          14
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 21,
+        "title": "Implement Performance Optimizations",
+        "description": "Optimize the Lattice compiler and generated code for better performance.",
+        "details": "Implement various optimizations for the compiler and generated code: Improve type inference performance with more efficient algorithms, Optimize the IR with more advanced transformations, Generate more efficient WASM code, and Reduce memory usage during compilation. Implement parallel compilation using rayon (^1.8.0). Add benchmarking tools to measure compiler and runtime performance. Implement profile-guided optimization for the generated code. The optimizations should be configurable with different optimization levels. Focus on optimizations that are particularly beneficial for functional programming patterns. Implement tail call optimization where possible. Optimize pattern matching compilation for better performance.",
+        "testStrategy": "Create benchmarks for compiler performance on large codebases. Measure compilation time, memory usage, and generated code size. Compare performance before and after optimizations. Test with real-world use cases to ensure practical benefits. Verify that optimizations don't change program semantics with extensive testing.",
+        "priority": "low",
+        "dependencies": [
+          13
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 22,
+        "title": "Implement IDE Integration",
+        "description": "Create language server and editor plugins for better IDE integration.",
+        "details": "Implement a Language Server Protocol (LSP) server for Lattice using tower-lsp (^0.19.0). The LSP server should provide: Code completion, Go to definition, Find references, Hover information, and Diagnostics. Create editor plugins for popular editors: VS Code, Vim/Neovim, and Emacs. Implement syntax highlighting for Lattice code. The LSP server should reuse the compiler's parser and type checker for accuracy. Implement incremental compilation for better responsiveness. Add support for code formatting. The LSP server should provide helpful type information and documentation. Implement code actions for common refactorings. The editor plugins should be published to their respective marketplaces.",
+        "testStrategy": "Create unit tests for the LSP server functionality. Test with various editor clients to ensure compatibility. Test performance with large codebases to ensure responsiveness. Test incremental compilation with code changes. Verify that diagnostics are accurate and helpful. Test with real-world development workflows to ensure practical usability.",
+        "priority": "low",
+        "dependencies": [
+          15
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 23,
+        "title": "Implement Debugger",
+        "description": "Create a debugger for Lattice programs to help with development and troubleshooting.",
+        "details": "Implement a debugger that works with the WASM output of the Lattice compiler. The debugger should support: Setting breakpoints, Stepping through code, Inspecting variables, and Viewing the call stack. Implement source maps to map between WASM and Lattice source code. Create a command-line interface for the debugger. The debugger should work with both browser and server environments. Implement conditional breakpoints and watchpoints. Add support for debugging optimized code. The debugger should provide a good user experience with clear and helpful information. Implement integration with existing WASM debugging tools where possible. The debugger should work with the LSP server for IDE integration.",
+        "testStrategy": "Create integration tests for the debugger functionality. Test with various programs and debugging scenarios. Test breakpoints, stepping, and variable inspection. Test with optimized code to ensure usability. Verify that source mapping works correctly. Test with real-world debugging workflows to ensure practical usability.",
+        "priority": "low",
+        "dependencies": [
+          13,
+          22
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 24,
+        "title": "Implement Comprehensive Standard Library",
+        "description": "Expand the standard library with comprehensive utilities for common programming tasks.",
+        "details": "Expand the standard library with modules for: Collections (Map, Set, Queue, etc.), String manipulation, Math and numeric operations, Date and time handling, File and IO operations (through effects), Concurrency primitives (through effects), and Serialization/deserialization. Implement all utilities in a pure functional style using algebraic effects for side effects. Ensure all functions are well-documented with examples and type signatures. Implement property-based tests for all functions. The standard library should be efficient and well-optimized. Design the API to be consistent and intuitive. Implement common functional programming patterns like monads, functors, and applicatives. The standard library should be implemented in Lattice itself once the compiler supports self-hosting.",
+        "testStrategy": "Create comprehensive unit tests for all standard library functions. Implement property-based tests for functions with clear properties. Test edge cases and error handling. Benchmark performance-critical functions. Verify that the API is consistent and intuitive through user testing. Test with real-world use cases to ensure practical usability.",
+        "priority": "low",
+        "dependencies": [
+          9,
+          11
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 25,
+        "title": "Create Example Applications and Tutorials",
+        "description": "Develop example applications and tutorials to demonstrate Lattice's capabilities and help users learn the language.",
+        "details": "Create a variety of example applications: Web applications using the browser integration, Server applications using Wasmtime, Command-line tools, and Libraries for common tasks. Develop comprehensive tutorials covering: Language basics, Type system features, Algebraic data types and pattern matching, Algebraic effects and handlers, and Advanced topics. Create a website with interactive examples using WebAssembly. Implement a \"Tour of Lattice\" similar to Tour of Rust or Tour of Go. The examples should demonstrate best practices and idiomatic Lattice code. The tutorials should be accessible to programmers with different backgrounds. Create video tutorials for visual learners. All examples and tutorials should be well-documented and tested.",
+        "testStrategy": "Test all example applications to ensure they work correctly. Review tutorials with users of different experience levels to ensure clarity. Verify that examples demonstrate best practices and idiomatic code. Test the website with various browsers to ensure compatibility. Gather feedback from users to improve the examples and tutorials.",
+        "priority": "low",
+        "dependencies": [
+          17,
+          18,
+          24
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-08-11T22:13:45.171Z",
+      "updated": "2025-08-11T22:13:45.171Z",
+      "description": "Tasks for master context"
+    }
+  }
+}
