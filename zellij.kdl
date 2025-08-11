@@ -15,9 +15,17 @@ layout {
     }
   }
 
-  tab name="project" {
+  tab name="devenv" {
     pane {
-      cwd "/data/code/lattice"
+      cwd "/data/Code/lattice"
+      command "devenv"
+      args "up"
+    }
+  }
+
+  tab name="shell" {
+    pane {
+      cwd "/data/Code/lattice"
     }
   }
 }
