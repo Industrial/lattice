@@ -1,6 +1,6 @@
 {pkgs, ...}: {
   # Name of the project with version
-  name = "streamweave";
+  name = "lattice";
 
   # Languages
   languages = {
@@ -27,9 +27,6 @@
     clippy
     rust-analyzer
     rustfmt
-    sea-orm-cli
-    wasm-bindgen-cli
-    wasm-pack
 
     # Development tools
     direnv
@@ -49,9 +46,15 @@
   # Pre-commit hooks
   pre-commit.hooks = {
     # Rust checks
-    cargo-check.enable = true;
-    clippy.enable = true;
-    rustfmt.enable = true;
+    cargo-check = {
+      enable = true;
+    };
+    clippy = {
+      enable = true;
+    };
+    rustfmt = {
+      enable = true;
+    };
 
     # Build check
     build = {
@@ -76,22 +79,11 @@
   enterShell = ''
     echo "🦀 Running initial cargo build..."
     cargo build
-
-    echo "🤖 Setting up TaskMaster AI with Bun..."
-    if [ ! -d ".taskmaster" ]; then
-      echo "Initializing TaskMaster AI..."
-      bunx taskmaster-ai init --yes
-    fi
-
-    echo "✅ Development environment ready!"
-    echo "📋 Available commands:"
-    echo "  - bunx taskmaster-ai tasks          # List all tasks"
-    echo "  - bunx taskmaster-ai next           # Get next task to work on"
-    echo "  - bunx taskmaster-ai add 'task'     # Add new task"
-    echo "  - bunx taskmaster-ai research 'query' # Research with AI"
   '';
 
   processes = {
-    cargo-watch.exec = "cargo watch -x check -x test";
+    cargo-watch = {
+      exec = "cargo watch -x check -x test";
+    };
   };
 }
