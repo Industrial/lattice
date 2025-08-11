@@ -2,3 +2,7 @@
 .devenv/
 .direnv/
 .pre-commit-config.yaml
+
+# Added by cargo
+
+/target
