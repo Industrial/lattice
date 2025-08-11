@@ -2,20 +2,62 @@
 name = "lattice-compiler"
 version = "0.1.0"
 edition = "2021"
-description = "Compiler for the Lattice functional programming language"
-authors = ["Lattice Team"]
-license = "Unlicense"
+description = "Compiler for the Lattice functional programming language with WASM backend"
+authors = ["Lattice Language Team"]
+license = "MIT"
+repository = "https://github.com/lattice-lang/lattice"
+keywords = ["compiler", "language", "wasm", "effects", "functional-programming"]
+categories = ["compilers", "development-tools"]
+readme = "README.md"
+homepage = "https://lattice-lang.org"
+documentation = "https://docs.lattice-lang.org"
+rust-version = "1.70"
 
 [dependencies]
-clap = { version = "4.4.6", features = ["derive"] }
+# CLI and argument parsing
+clap = { version = "4.4.6", features = ["derive", "env"] }
+
+# Error handling and utilities
 anyhow = "1.0"
+thiserror = "1.0"
+
+# Error reporting with source code spans
 codespan-reporting = "0.11.1"
+
+# WASM generation and encoding
 wasm-encoder = "0.33.0"
+
+# Serialization
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-thiserror = "1.0"
+
+# Rust version detection
 rustc_version = "0.4.1"
-wasmtime = "35.0.0"
+
+# WASM runtime for testing and execution
+wasmtime = { version = "14.0", features = ["wat", "cranelift"] }
+
+# Additional utilities for compiler development
+regex = "1.10"
+walkdir = "2.4"
+tempfile = "3.8"
+proptest = { version = "1.2.0", optional = true }
+insta = { version = "1.34", optional = true }
 
 [dev-dependencies]
-proptest = "1.2.0" 
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[features]
+default = ["std"]
+std = ["wasmtime/wat", "wasmtime/cranelift"]
+minimal = []
+testing = ["proptest", "insta"]
+
+[lib]
+name = "lattice_compiler"
+crate-type = ["lib", "rlib"]
+
+[[bin]]
+name = "latticec"
+path = "src/main.rs"
+required-features = ["std"] 

@@ -2,18 +2,62 @@
 name = "lattice-pm"
 version = "0.1.0"
 edition = "2021"
-description = "Package manager for the Lattice language ecosystem"
-authors = ["Lattice Team"]
-license = "Unlicense"
+description = "Package manager for the Lattice language ecosystem with dependency resolution"
+authors = ["Lattice Language Team"]
+license = "MIT"
+repository = "https://github.com/lattice-lang/lattice"
+keywords = ["package-manager", "dependency-resolution", "language", "ecosystem"]
+categories = ["development-tools", "utilities"]
+readme = "README.md"
+homepage = "https://lattice-lang.org"
+documentation = "https://docs.lattice-lang.org"
+rust-version = "1.70"
 
 [dependencies]
-clap = { version = "4.4.6", features = ["derive"] }
+# CLI and argument parsing
+clap = { version = "4.4.6", features = ["derive", "env"] }
+
+# Serialization and configuration
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-anyhow = "1.0"
 toml = "0.8"
-dirs = "5.0"
+
+# Error handling and utilities
+anyhow = "1.0"
 thiserror = "1.0"
 
+# File system and directory operations
+dirs = "5.0"
+walkdir = "2.4"
+tempfile = "3.8"
+
+# Async runtime and utilities
+tokio = { version = "1.0", features = ["rt", "macros"] }
+async-trait = "0.1"
+
+# Logging and progress reporting
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Additional utilities
+semver = "1.0"
+url = "2.4"
+path-absolutize = "3.1"
+
 [dev-dependencies]
-tempfile = "3.8" 
+tempfile = "3.8"
+tokio-test = "0.4"
+
+[features]
+default = ["std"]
+std = ["tokio/rt", "tokio/macros"]
+minimal = ["tokio/rt"]
+
+[lib]
+name = "lattice_pm"
+crate-type = ["lib", "rlib"]
+
+[[bin]]
+name = "lattice"
+path = "src/main.rs"
+required-features = ["std"] 
