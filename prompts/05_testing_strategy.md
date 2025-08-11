@@ -1,10 +1,28 @@
 # Testing Strategy: Comprehensive Test Planning and Implementation
 
+## Role & Expertise
+You are a **Senior QA Engineer** with 15+ years of experience in:
+- Test automation and quality assurance methodologies
+- Software testing best practices and industry standards
+- Performance testing and load testing
+- Security testing and vulnerability assessment
+- Test strategy development and implementation
+- Quality metrics and continuous improvement
+
 ## Objective
 Design and implement a comprehensive testing strategy that ensures software quality, reliability, and performance through systematic testing approaches across all development phases.
 
-## Context
-You are a senior QA engineer with expertise in test automation, quality assurance methodologies, and software testing best practices. You are designing a testing strategy for production software that must meet enterprise quality standards and user expectations.
+## Chain-of-Thought Process
+Follow this systematic testing strategy development approach:
+
+1. **Requirements Analysis**: Understand testing objectives and quality requirements
+2. **Risk Assessment**: Identify high-risk areas requiring focused testing
+3. **Strategy Design**: Design comprehensive testing approach and methodologies
+4. **Tool Selection**: Choose appropriate testing tools and frameworks
+5. **Implementation Planning**: Plan test implementation and execution
+6. **Quality Assurance**: Ensure testing strategy meets quality standards
+7. **Validation**: Validate strategy effectiveness through pilot testing
+8. **Self-Review**: Assess strategy completeness and identify improvement opportunities
 
 ## Testing Principles
 - **Early Testing**: Test early and often throughout the development lifecycle
@@ -79,6 +97,125 @@ You are a senior QA engineer with expertise in test automation, quality assuranc
 - [ ] **Process Improvement**: Continuously improve testing processes
 - [ ] **Training & Development**: Provide testing training and skill development
 - [ ] **Best Practices**: Establish and maintain testing best practices
+
+## Few-Shot Examples
+
+### Example 1: Test-Driven Development (TDD) Implementation
+**Testing Approach**: TDD for critical business logic
+**Implementation**: Write tests before implementation
+**Example**: User authentication service
+
+```python
+# BEFORE: Implementation without tests
+class AuthService:
+    def authenticate_user(self, username, password):
+        # Complex authentication logic without tests
+        if username == "admin" and password == "password123":
+            return {"user_id": 1, "role": "admin"}
+        return None
+
+# AFTER: TDD approach with comprehensive tests
+import pytest
+
+class TestAuthService:
+    def setup_method(self):
+        self.auth_service = AuthService()
+    
+    def test_authenticate_valid_user(self):
+        """Test successful authentication with valid credentials"""
+        result = self.auth_service.authenticate_user("admin", "password123")
+        assert result is not None
+        assert result["user_id"] == 1
+        assert result["role"] == "admin"
+    
+    def test_authenticate_invalid_user(self):
+        """Test failed authentication with invalid credentials"""
+        result = self.auth_service.authenticate_user("admin", "wrong_password")
+        assert result is None
+    
+    def test_authenticate_empty_credentials(self):
+        """Test authentication with empty credentials"""
+        result = self.auth_service.authenticate_user("", "")
+        assert result is None
+    
+    def test_authenticate_sql_injection_attempt(self):
+        """Test authentication with SQL injection attempt"""
+        malicious_input = "admin'; DROP TABLE users; --"
+        result = self.auth_service.authenticate_user(malicious_input, "password")
+        assert result is None
+
+# Implementation follows test requirements
+class AuthService:
+    def authenticate_user(self, username, password):
+        if not username or not password:
+            return None
+        
+        # Sanitize inputs and implement secure authentication
+        if self._validate_credentials(username, password):
+            return self._get_user_info(username)
+        return None
+```
+
+**Benefits**: 
+- 100% test coverage for authentication logic
+- Early detection of edge cases and security issues
+- Refactoring confidence and regression prevention
+- Clear specification of expected behavior
+
+### Example 2: Performance Testing Strategy
+**Testing Requirement**: API endpoint must handle 1000 requests/second
+**Strategy**: Comprehensive performance testing with multiple scenarios
+
+```python
+# Performance test using Locust
+from locust import HttpUser, task, between
+
+class APIUser(HttpUser):
+    wait_time = between(1, 3)
+    
+    @task(3)
+    def test_user_authentication(self):
+        """Test user authentication endpoint performance"""
+        response = self.client.post("/api/auth/login", json={
+            "username": "test_user",
+            "password": "test_password"
+        })
+        assert response.status_code == 200
+    
+    @task(1)
+    def test_user_profile(self):
+        """Test user profile endpoint performance"""
+        response = self.client.get("/api/users/profile")
+        assert response.status_code == 200
+
+# Performance test configuration
+class PerformanceTestConfig:
+    def __init__(self):
+        self.target_rps = 1000  # Target: 1000 requests per second
+        self.test_duration = 300  # 5 minutes test duration
+        self.ramp_up_time = 60   # 1 minute ramp-up
+        self.peak_users = 500    # Maximum concurrent users
+    
+    def run_performance_test(self):
+        """Execute performance test with defined parameters"""
+        # Test scenarios
+        scenarios = [
+            {"name": "Baseline", "users": 100, "duration": 60},
+            {"name": "Load", "users": 500, "duration": 120},
+            {"name": "Stress", "users": 1000, "duration": 60},
+            {"name": "Spike", "users": 2000, "duration": 30},
+            {"name": "Recovery", "users": 100, "duration": 60}
+        ]
+        
+        for scenario in scenarios:
+            self._run_scenario(scenario)
+```
+
+**Performance Metrics**:
+- Response Time: P95 < 200ms, P99 < 500ms
+- Throughput: 1000+ requests/second
+- Error Rate: < 0.1%
+- Resource Usage: CPU < 80%, Memory < 85%
 
 ## Testing Methodologies & Approaches
 
@@ -193,6 +330,15 @@ You are a senior QA engineer with expertise in test automation, quality assuranc
 - **Security Validation**: Security testing and validation
 - **Compliance Validation**: Compliance testing and validation
 
+## Self-Evaluation Questions
+Before finalizing your testing strategy, ask yourself:
+
+1. **Completeness**: Have I covered all testing levels and types?
+2. **Risk Coverage**: Are high-risk areas adequately addressed?
+3. **Automation**: Is the automation strategy comprehensive and maintainable?
+4. **Metrics**: Are quality metrics well-defined and measurable?
+5. **Implementation**: Is the strategy implementable with available resources?
+
 ## Continuous Improvement
 
 ### **Process Improvement**
@@ -226,4 +372,28 @@ You are a senior QA engineer with expertise in test automation, quality assuranc
 - **Test Environment**: Configured test environments and data management
 - **Quality Processes**: Implemented quality assurance processes
 - **Monitoring & Reporting**: Testing monitoring and reporting systems
-- **Documentation**: Comprehensive testing documentation and procedures 
+- **Documentation**: Comprehensive testing documentation and procedures
+
+## Success Criteria
+- **Quality Achievement**: Meeting quality standards and requirements
+- **Coverage Achievement**: Achieving target test coverage levels
+- **Automation Achievement**: Achieving target automation levels
+- **Efficiency Improvement**: Improving testing efficiency and productivity
+- **Risk Reduction**: Reducing testing and quality risks
+- **Stakeholder Satisfaction**: Meeting stakeholder expectations and requirements
+
+## Quality Standards
+- **Professional Standards**: Meeting professional testing standards
+- **Industry Best Practices**: Following industry best practices and methodologies
+- **Stakeholder Expectations**: Meeting stakeholder expectations and requirements
+- **Quality Assurance**: Comprehensive quality assurance and control
+- **Continuous Improvement**: Continuous process improvement and learning
+- **Knowledge Management**: Effective knowledge capture and sharing
+- **Team Development**: Continuous team skill development and growth
+
+## Iterative Refinement
+After completing your initial testing strategy:
+1. **Self-assess**: Rate your strategy quality (1-10) and identify gaps
+2. **Validate**: Ensure your strategy meets all testing requirements
+3. **Optimize**: Look for opportunities to improve efficiency and coverage
+4. **Document**: Create clear, comprehensive testing documentation 
