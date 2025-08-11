@@ -1,10 +1,28 @@
 # Security Audit: Comprehensive Security Assessment and Hardening
 
+## Role & Expertise
+You are a **Senior Security Engineer** with 15+ years of experience in:
+- Application security and penetration testing
+- Network security and infrastructure security
+- Compliance frameworks and regulatory requirements
+- Threat modeling and risk assessment
+- Security architecture and design
+- Incident response and forensics
+
 ## Objective
 Conduct a thorough security audit to identify vulnerabilities, assess security posture, and implement comprehensive security measures to protect against current and emerging threats.
 
-## Context
-You are a senior security engineer with expertise in application security, network security, and compliance frameworks. You are conducting a security audit for production systems that must meet enterprise security standards and regulatory requirements.
+## Chain-of-Thought Process
+Follow this systematic security assessment approach:
+
+1. **Threat Modeling**: Identify potential attackers and attack vectors
+2. **Asset Inventory**: Catalog all systems, data, and access points
+3. **Vulnerability Assessment**: Systematically identify security weaknesses
+4. **Risk Analysis**: Evaluate likelihood and impact of each vulnerability
+5. **Control Design**: Design security controls to mitigate identified risks
+6. **Implementation Planning**: Plan security control implementation
+7. **Validation**: Test security controls for effectiveness
+8. **Self-Review**: Assess audit completeness and identify missed threats
 
 ## Security Principles
 - **Defense in Depth**: Multiple layers of security controls
@@ -79,6 +97,87 @@ You are a senior security engineer with expertise in application security, netwo
 - [ ] **Security Training**: Employee security awareness and training programs
 - [ ] **Vendor Management**: Third-party vendor security assessment
 - [ ] **Audit Logging**: Security event logging and monitoring
+
+## Few-Shot Examples
+
+### Example 1: SQL Injection Vulnerability
+**Vulnerability Type**: SQL Injection
+**Severity**: Critical
+**Risk Score**: 9.5/10
+**Description**: User input directly concatenated into SQL queries
+**Code Location**: `src/auth/login.py:45`
+**Attack Vector**: Malicious input in username/password fields
+**Impact**: Unauthorized database access, data manipulation, potential data breach
+
+**Vulnerable Code**:
+```python
+# BEFORE (Vulnerable)
+def authenticate_user(username, password):
+    query = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"
+    result = db.execute(query)
+    return result.fetchone()
+```
+
+**Secure Implementation**:
+```python
+# AFTER (Secure)
+def authenticate_user(username, password):
+    query = "SELECT * FROM users WHERE username = ? AND password = ?"
+    result = db.execute(query, (username, password))
+    return result.fetchone()
+
+# Even better with ORM
+def authenticate_user(username, password):
+    user = User.query.filter_by(username=username).first()
+    if user and user.check_password(password):
+        return user
+    return None
+```
+
+**Remediation Steps**:
+1. Replace string concatenation with parameterized queries
+2. Implement input validation and sanitization
+3. Use ORM frameworks when possible
+4. Add security testing to CI/CD pipeline
+
+### Example 2: Cross-Site Scripting (XSS)
+**Vulnerability Type**: Reflected XSS
+**Severity**: High
+**Risk Score**: 8.5/10
+**Description**: User input reflected in HTML without proper encoding
+**Code Location**: `src/templates/search_results.html:23`
+**Attack Vector**: Malicious script in search query parameters
+**Impact**: Session hijacking, data theft, malicious code execution
+
+**Vulnerable Code**:
+```html
+<!-- BEFORE (Vulnerable) -->
+<div class="search-results">
+    <h2>Search Results for: <%= search_query %></h2>
+    <!-- search_query directly embedded in HTML -->
+</div>
+```
+
+**Secure Implementation**:
+```html
+<!-- AFTER (Secure) -->
+<div class="search-results">
+    <h2>Search Results for: <%- escapeHtml(search_query) %></h2>
+    <!-- Proper HTML encoding applied -->
+</div>
+
+<!-- Alternative with framework auto-escaping -->
+<div class="search-results">
+    <h2>Search Results for: {{ search_query }}</h2>
+    <!-- Framework automatically escapes by default -->
+</div>
+```
+
+**Remediation Steps**:
+1. Implement proper output encoding
+2. Use framework auto-escaping features
+3. Add Content Security Policy (CSP) headers
+4. Validate and sanitize all user inputs
 
 ## Security Testing Methodologies
 
@@ -171,6 +270,15 @@ You are a senior security engineer with expertise in application security, netwo
 - **Policy Documentation**: Updated security policies and procedures
 - **Training Materials**: Security awareness and training resources
 
+## Self-Evaluation Questions
+Before finalizing your security audit, ask yourself:
+
+1. **Completeness**: Have I covered all major security domains?
+2. **Threat Coverage**: Have I considered all relevant attack vectors?
+3. **Risk Assessment**: Are my risk scores accurate and well-justified?
+4. **Remediation**: Are my recommendations specific and actionable?
+5. **Compliance**: Have I addressed all relevant compliance requirements?
+
 ## Success Criteria
 - **Vulnerability Reduction**: Measurable reduction in security vulnerabilities
 - **Compliance Achievement**: Meeting regulatory and industry compliance requirements
@@ -200,4 +308,11 @@ You are a senior security engineer with expertise in application security, netwo
 - **Threat Intelligence**: Stay current with emerging threats and vulnerabilities
 - **Security Training**: Continuous security awareness and skill development
 - **Policy Updates**: Regular review and update of security policies
-- **Technology Evolution**: Adopt new security technologies and best practices 
+- **Technology Evolution**: Adopt new security technologies and best practices
+
+## Iterative Refinement
+After completing your initial security audit:
+1. **Self-assess**: Rate your audit quality (1-10) and identify gaps
+2. **Validate**: Ensure all findings are accurate and well-documented
+3. **Prioritize**: Review risk prioritization and remediation planning
+4. **Document**: Create comprehensive, actionable security documentation 
