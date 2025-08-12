@@ -1,9 +1,9 @@
 [workspace]
 resolver = "2"
 members = [
-    "compiler",
-    "pm", 
-    "stdlib"
+    "packages/compiler",
+    "packages/pm", 
+    "packages/stdlib"
 ]
 
 # Enhanced build profiles for better development and production builds
