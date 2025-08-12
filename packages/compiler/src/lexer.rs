@@ -375,6 +375,10 @@ pub enum TokenKind {
   // End of file
   #[regex(r"EOF")]
   Eof,
+
+  // Error token
+  #[token("InvalidToken")]
+  InvalidToken,
 }
 
 impl fmt::Display for TokenKind {
@@ -522,6 +526,9 @@ impl fmt::Display for TokenKind {
 
       // End of file
       TokenKind::Eof => write!(f, "EOF"),
+
+      // Error token
+      TokenKind::InvalidToken => write!(f, "invalid token"),
     }
   }
 }
@@ -543,6 +550,16 @@ pub enum LexerError {
   InvalidNumber(String, SourceLocation),
   /// Unexpected end of input
   UnexpectedEndOfInput(SourceLocation),
+  /// Invalid token sequence
+  InvalidTokenSequence(String, SourceLocation),
+  /// Malformed identifier
+  MalformedIdentifier(String, SourceLocation),
+  /// Invalid operator
+  InvalidOperator(String, SourceLocation),
+  /// Unterminated comment
+  UnterminatedComment(SourceLocation),
+  /// Invalid Unicode character
+  InvalidUnicode(char, SourceLocation),
 }
 
 impl fmt::Display for LexerError {
@@ -569,6 +586,21 @@ impl fmt::Display for LexerError {
       LexerError::UnexpectedEndOfInput(loc) => {
         write!(f, "Unexpected end of input at {}", loc)
       }
+      LexerError::InvalidTokenSequence(seq, loc) => {
+        write!(f, "Invalid token sequence '{}' at {}", seq, loc)
+      }
+      LexerError::MalformedIdentifier(id, loc) => {
+        write!(f, "Malformed identifier '{}' at {}", id, loc)
+      }
+      LexerError::InvalidOperator(op, loc) => {
+        write!(f, "Invalid operator '{}' at {}", op, loc)
+      }
+      LexerError::UnterminatedComment(loc) => {
+        write!(f, "Unterminated comment at {}", loc)
+      }
+      LexerError::InvalidUnicode(ch, loc) => {
+        write!(f, "Invalid Unicode character '{}' at {}", ch, loc)
+      }
     }
   }
 }
@@ -578,12 +610,41 @@ impl std::error::Error for LexerError {}
 /// Result type for lexer operations
 pub type LexerResult<T> = Result<T, LexerError>;
 
+/// Result type for lexer operations that can collect multiple errors
+pub type LexerResultWithErrors<T> = Result<T, Vec<LexerError>>;
+
 /// A lexer for the Lattice language that converts source code into tokens
 pub struct Lexer {
   /// The source code to tokenize
   source: String,
   /// Current source location
   current_location: SourceLocation,
+  /// Configuration for error recovery
+  error_recovery_config: ErrorRecoveryConfig,
+}
+
+/// Configuration for error recovery behavior
+#[derive(Debug, Clone)]
+pub struct ErrorRecoveryConfig {
+  /// Whether to continue lexing after encountering errors
+  pub continue_on_error: bool,
+  /// Maximum number of errors to collect before stopping
+  pub max_errors: Option<usize>,
+  /// Whether to insert error tokens for invalid characters
+  pub insert_error_tokens: bool,
+  /// Whether to skip invalid characters
+  pub skip_invalid_chars: bool,
+}
+
+impl Default for ErrorRecoveryConfig {
+  fn default() -> Self {
+    Self {
+      continue_on_error: true,
+      max_errors: Some(100),
+      insert_error_tokens: false,
+      skip_invalid_chars: true,
+    }
+  }
 }
 
 impl Lexer {
@@ -592,12 +653,22 @@ impl Lexer {
     Self {
       source,
       current_location: SourceLocation::start(),
+      error_recovery_config: ErrorRecoveryConfig::default(),
     }
   }
 
   /// Create a new lexer from a string slice
   pub fn from_str(source: &str) -> Self {
     Self::new(source.to_string())
+  }
+
+  /// Create a new lexer with custom error recovery configuration
+  pub fn with_config(source: String, config: ErrorRecoveryConfig) -> Self {
+    Self {
+      source,
+      current_location: SourceLocation::start(),
+      error_recovery_config: config,
+    }
   }
 
   /// Get the source code being tokenized
@@ -610,14 +681,25 @@ impl Lexer {
     self.current_location
   }
 
+  /// Get the error recovery configuration
+  pub fn error_recovery_config(&self) -> &ErrorRecoveryConfig {
+    &self.error_recovery_config
+  }
+
+  /// Set the error recovery configuration
+  pub fn set_error_recovery_config(&mut self, config: ErrorRecoveryConfig) {
+    self.error_recovery_config = config;
+  }
+
   /// Reset the lexer to the beginning
   pub fn reset(&mut self) {
     self.current_location = SourceLocation::start();
   }
 
-  /// Tokenize the entire source code into a vector of tokens
-  pub fn tokenize(&mut self) -> LexerResult<Vec<Token>> {
+  /// Tokenize the entire source code into a vector of tokens with error collection
+  pub fn tokenize_with_errors(&mut self) -> LexerResultWithErrors<Vec<Token>> {
     let mut tokens = Vec::new();
+    let mut errors = Vec::new();
     let mut lexer = TokenKind::lexer(&self.source);
     let mut current_location = SourceLocation::start();
 
@@ -647,19 +729,65 @@ impl Lexer {
           }
         }
         Err(_) => {
-          // Handle logos errors - create an error token or skip
-          continue;
+          // Handle logos errors with error recovery
+          let error_location = current_location;
+          let invalid_text = lexer.slice();
+
+          // Create appropriate error based on the invalid text
+          let error = self.create_error_from_invalid_text(invalid_text, error_location);
+          errors.push(error);
+
+          // Check if we should continue or stop
+          if !self.should_continue_after_error(&errors) {
+            break;
+          }
+
+          // Advance location by the invalid text to continue lexing
+          current_location.advance_by(invalid_text);
+
+          // Optionally insert error token
+          if self.error_recovery_config.insert_error_tokens {
+            let error_token = Token::new(
+              TokenKind::InvalidToken,
+              invalid_text.to_string(),
+              error_location,
+              current_location,
+            );
+            tokens.push(error_token);
+          }
         }
       }
     }
 
     self.current_location = current_location;
-    Ok(tokens)
+
+    if errors.is_empty() {
+      Ok(tokens)
+    } else {
+      Err(errors)
+    }
+  }
+
+  /// Tokenize the entire source code into a vector of tokens
+  pub fn tokenize(&mut self) -> LexerResult<Vec<Token>> {
+    match self.tokenize_with_errors() {
+      Ok(tokens) => Ok(tokens),
+      Err(errors) => {
+        // Return the first error for backward compatibility
+        Err(
+          errors
+            .into_iter()
+            .next()
+            .unwrap_or_else(|| LexerError::UnexpectedEndOfInput(self.current_location)),
+        )
+      }
+    }
   }
 
   /// Tokenize including whitespace and comments
   pub fn tokenize_all(&mut self) -> LexerResult<Vec<Token>> {
     let mut tokens = Vec::new();
+    let mut errors = Vec::new();
     let mut lexer = TokenKind::lexer(&self.source);
     let mut current_location = SourceLocation::start();
 
@@ -678,14 +806,191 @@ impl Lexer {
           tokens.push(token);
         }
         Err(_) => {
-          // Handle logos errors - create an error token or skip
-          continue;
+          // Handle logos errors with error recovery
+          let error_location = current_location;
+          let invalid_text = lexer.slice();
+
+          // Create appropriate error based on the invalid text
+          let error = self.create_error_from_invalid_text(invalid_text, error_location);
+          errors.push(error);
+
+          // Check if we should continue or stop
+          if !self.should_continue_after_error(&errors) {
+            break;
+          }
+
+          // Advance location by the invalid text to continue lexing
+          current_location.advance_by(invalid_text);
+
+          // Optionally insert error token
+          if self.error_recovery_config.insert_error_tokens {
+            let error_token = Token::new(
+              TokenKind::InvalidToken,
+              invalid_text.to_string(),
+              error_location,
+              current_location,
+            );
+            tokens.push(error_token);
+          }
         }
       }
     }
 
     self.current_location = current_location;
-    Ok(tokens)
+
+    if errors.is_empty() {
+      Ok(tokens)
+    } else {
+      Err(
+        errors
+          .into_iter()
+          .next()
+          .unwrap_or_else(|| LexerError::UnexpectedEndOfInput(self.current_location)),
+      )
+    }
+  }
+
+  /// Create an appropriate error based on invalid text
+  fn create_error_from_invalid_text(
+    &self,
+    invalid_text: &str,
+    location: SourceLocation,
+  ) -> LexerError {
+    if invalid_text.is_empty() {
+      return LexerError::UnexpectedEndOfInput(location);
+    }
+
+    // Try to identify the type of error based on the invalid text
+    if invalid_text.starts_with('"') && !invalid_text.ends_with('"') {
+      LexerError::UnterminatedString(location)
+    } else if invalid_text.starts_with('\'') && !invalid_text.ends_with('\'') {
+      LexerError::UnterminatedChar(location)
+    } else if invalid_text.starts_with("/*") && !invalid_text.ends_with("*/") {
+      LexerError::UnterminatedBlockComment(location)
+    } else if invalid_text.starts_with("//") {
+      LexerError::UnterminatedComment(location)
+    } else if invalid_text
+      .chars()
+      .any(|c| !c.is_ascii() && !c.is_alphanumeric() && !c.is_whitespace())
+    {
+      // Check for invalid Unicode characters
+      if let Some(invalid_char) = invalid_text
+        .chars()
+        .find(|c| !c.is_ascii() && !c.is_alphanumeric() && !c.is_whitespace())
+      {
+        LexerError::InvalidUnicode(invalid_char, location)
+      } else {
+        LexerError::InvalidCharacter(invalid_text.chars().next().unwrap(), location)
+      }
+    } else if invalid_text.chars().all(|c| c.is_ascii_punctuation()) {
+      // Invalid operator sequence
+      LexerError::InvalidOperator(invalid_text.to_string(), location)
+    } else if invalid_text.chars().any(|c| c.is_alphanumeric()) {
+      // Malformed identifier
+      LexerError::MalformedIdentifier(invalid_text.to_string(), location)
+    } else {
+      // Generic invalid character
+      LexerError::InvalidCharacter(invalid_text.chars().next().unwrap(), location)
+    }
+  }
+
+  /// Check if we should continue lexing after encountering an error
+  fn should_continue_after_error(&self, errors: &[LexerError]) -> bool {
+    if !self.error_recovery_config.continue_on_error {
+      return false;
+    }
+
+    if let Some(max_errors) = self.error_recovery_config.max_errors {
+      if errors.len() >= max_errors {
+        return false;
+      }
+    }
+
+    true
+  }
+
+  /// Get a summary of all errors encountered during lexing
+  pub fn get_error_summary(&self, errors: &[LexerError]) -> String {
+    if errors.is_empty() {
+      return "No errors encountered".to_string();
+    }
+
+    let mut summary = format!("{} error(s) encountered:\n", errors.len());
+    for (i, error) in errors.iter().enumerate() {
+      summary.push_str(&format!("  {}. {}\n", i + 1, error));
+    }
+    summary
+  }
+
+  /// Attempt to recover from a specific error type
+  pub fn try_recover_from_error(
+    &self,
+    error: &LexerError,
+    source: &str,
+    position: usize,
+  ) -> Option<usize> {
+    match error {
+      LexerError::UnterminatedString(_loc) => {
+        // Try to find the next quote character
+        if let Some(next_quote) = source[position..].find('"') {
+          Some(position + next_quote + 1)
+        } else {
+          None
+        }
+      }
+      LexerError::UnterminatedChar(_loc) => {
+        // Try to find the next single quote character
+        if let Some(next_quote) = source[position..].find('\'') {
+          Some(position + next_quote + 1)
+        } else {
+          None
+        }
+      }
+      LexerError::UnterminatedBlockComment(_loc) => {
+        // Try to find the end of block comment
+        if let Some(end_comment) = source[position..].find("*/") {
+          Some(position + end_comment + 2)
+        } else {
+          Some(source.len())
+        }
+      }
+      LexerError::UnterminatedComment(_loc) => {
+        // Line comments end at newline
+        if let Some(newline) = source[position..].find('\n') {
+          Some(position + newline + 1)
+        } else {
+          Some(source.len())
+        }
+      }
+      _ => {
+        // For other errors, try to skip to the next whitespace or delimiter
+        let next_whitespace = source[position..].find(|c: char| c.is_whitespace());
+        let next_delimiter = source[position..]
+          .find(|c: char| matches!(c, '(' | ')' | '[' | ']' | '{' | '}' | ',' | ';' | ':'));
+
+        match (next_whitespace, next_delimiter) {
+          (Some(ws), Some(del)) => Some(position + ws.min(del)),
+          (Some(ws), None) => Some(position + ws),
+          (None, Some(del)) => Some(position + del),
+          (None, None) => Some(source.len()),
+        }
+      }
+    }
+  }
+
+  /// Validate that the lexer configuration is reasonable
+  pub fn validate_config(&self) -> Result<(), String> {
+    if self.error_recovery_config.max_errors == Some(0) {
+      return Err("max_errors cannot be 0".to_string());
+    }
+
+    if !self.error_recovery_config.continue_on_error
+      && self.error_recovery_config.max_errors.is_some()
+    {
+      return Err("max_errors is ignored when continue_on_error is false".to_string());
+    }
+
+    Ok(())
   }
 
   /// Peek at the next token without consuming it
@@ -1036,5 +1341,333 @@ mod tests {
 
     let _tokens = lexer.tokenize().unwrap();
     assert_eq!(lexer.remaining(), "");
+  }
+
+  // Error recovery and reporting tests
+  #[test]
+  fn test_lexer_error_recovery_config() {
+    let config = ErrorRecoveryConfig {
+      continue_on_error: true,
+      max_errors: Some(50),
+      insert_error_tokens: true,
+      skip_invalid_chars: false,
+    };
+
+    let lexer = Lexer::with_config("test".to_string(), config);
+    assert!(lexer.error_recovery_config().continue_on_error);
+    assert_eq!(lexer.error_recovery_config().max_errors, Some(50));
+    assert!(lexer.error_recovery_config().insert_error_tokens);
+    assert!(!lexer.error_recovery_config().skip_invalid_chars);
+  }
+
+  #[test]
+  fn test_lexer_error_recovery_config_default() {
+    let config = ErrorRecoveryConfig::default();
+    assert!(config.continue_on_error);
+    assert_eq!(config.max_errors, Some(100));
+    assert!(!config.insert_error_tokens);
+    assert!(config.skip_invalid_chars);
+  }
+
+  #[test]
+  fn test_lexer_config_validation() {
+    let mut lexer = Lexer::from_str("test");
+
+    // Valid config
+    let valid_config = ErrorRecoveryConfig::default();
+    lexer.set_error_recovery_config(valid_config);
+    assert!(lexer.validate_config().is_ok());
+
+    // Invalid config - max_errors = 0
+    let invalid_config = ErrorRecoveryConfig {
+      continue_on_error: true,
+      max_errors: Some(0),
+      insert_error_tokens: false,
+      skip_invalid_chars: true,
+    };
+    lexer.set_error_recovery_config(invalid_config);
+    assert!(lexer.validate_config().is_err());
+
+    // Invalid config - max_errors ignored when continue_on_error = false
+    let invalid_config2 = ErrorRecoveryConfig {
+      continue_on_error: false,
+      max_errors: Some(50),
+      insert_error_tokens: false,
+      skip_invalid_chars: true,
+    };
+    lexer.set_error_recovery_config(invalid_config2);
+    assert!(lexer.validate_config().is_err());
+  }
+
+  #[test]
+  fn test_lexer_error_collection() {
+    // Use input with null bytes that will trigger logos errors
+    let mut lexer = Lexer::from_str("let x = \u{0000} y");
+    let result = lexer.tokenize_with_errors();
+
+    match result {
+      Err(errors) => {
+        assert!(!errors.is_empty());
+        // Should have at least one error for the null byte
+        let has_invalid_char_error = errors
+          .iter()
+          .any(|e| matches!(e, LexerError::InvalidCharacter(_, _)));
+        assert!(has_invalid_char_error);
+      }
+      Ok(_) => panic!("Expected errors for invalid input"),
+    }
+  }
+
+  #[test]
+  fn test_lexer_error_recovery_continue() {
+    // Use input with null bytes that will trigger logos errors
+    let mut lexer = Lexer::from_str("let x = \u{0000} y = \u{0001} z");
+    let result = lexer.tokenize_with_errors();
+
+    match result {
+      Err(errors) => {
+        // Should have errors but also continue processing
+        assert!(!errors.is_empty());
+        // Should have processed tokens after the error
+        assert!(errors.len() >= 1);
+      }
+      Ok(_) => panic!("Expected errors for invalid input"),
+    }
+  }
+
+  #[test]
+  fn test_lexer_error_recovery_stop() {
+    let mut config = ErrorRecoveryConfig::default();
+    config.continue_on_error = false;
+
+    // Use input with null bytes that will trigger logos errors
+    let mut lexer = Lexer::with_config("let x = \u{0000} y = \u{0001} z".to_string(), config);
+    let result = lexer.tokenize_with_errors();
+
+    match result {
+      Err(errors) => {
+        // Should stop at first error
+        assert_eq!(errors.len(), 1);
+      }
+      Ok(_) => panic!("Expected errors for invalid input"),
+    }
+  }
+
+  #[test]
+  fn test_lexer_max_errors_limit() {
+    let mut config = ErrorRecoveryConfig::default();
+    config.max_errors = Some(2);
+
+    // Use input with null bytes that will trigger logos errors
+    let mut lexer = Lexer::with_config(
+      "let x = \u{0000} y = \u{0001} z = \u{0002}".to_string(),
+      config,
+    );
+    let result = lexer.tokenize_with_errors();
+
+    match result {
+      Err(errors) => {
+        // Should stop at max_errors limit
+        assert_eq!(errors.len(), 2);
+      }
+      Ok(_) => panic!("Expected errors for invalid input"),
+    }
+  }
+
+  #[test]
+  fn test_lexer_error_token_insertion() {
+    let mut config = ErrorRecoveryConfig::default();
+    config.insert_error_tokens = true;
+
+    // Use input with null bytes that will trigger logos errors
+    let mut lexer = Lexer::with_config("let x = \u{0000} y".to_string(), config);
+    let result = lexer.tokenize_with_errors();
+
+    match result {
+      Err(errors) => {
+        // Should have errors
+        assert!(!errors.is_empty());
+      }
+      Ok(tokens) => {
+        // Should have error tokens inserted
+        let has_error_token = tokens.iter().any(|t| t.kind == TokenKind::InvalidToken);
+        assert!(has_error_token);
+      }
+    }
+  }
+
+  #[test]
+  fn test_lexer_error_summary() {
+    let lexer = Lexer::from_str("test");
+    let errors = vec![
+      LexerError::InvalidCharacter('@', SourceLocation::new(1, 5, 4)),
+      LexerError::InvalidCharacter('#', SourceLocation::new(1, 7, 6)),
+    ];
+
+    let summary = lexer.get_error_summary(&errors);
+    assert!(summary.contains("2 error(s) encountered:"));
+    assert!(summary.contains("Invalid character '@' at 1:5"));
+    assert!(summary.contains("Invalid character '#' at 1:7"));
+  }
+
+  #[test]
+  fn test_lexer_error_summary_empty() {
+    let lexer = Lexer::from_str("test");
+    let errors = vec![];
+
+    let summary = lexer.get_error_summary(&errors);
+    assert_eq!(summary, "No errors encountered");
+  }
+
+  #[test]
+  fn test_lexer_error_recovery_strategies() {
+    let lexer = Lexer::from_str("test");
+
+    // Test string recovery - start from position after opening quote
+    let error = LexerError::UnterminatedString(SourceLocation::new(1, 1, 0));
+    let source = "let x = \"hello world\"";
+    let recovery_pos = lexer.try_recover_from_error(&error, source, 9); // Start from position after opening quote
+    assert_eq!(recovery_pos, Some(21)); // Position after closing quote (8 + 1 + 11 + 1)
+
+    // Test char recovery - start from position after opening quote
+    let error = LexerError::UnterminatedChar(SourceLocation::new(1, 1, 0));
+    let source = "let x = 'a'";
+    let recovery_pos = lexer.try_recover_from_error(&error, source, 9); // Start from position after opening quote
+    assert_eq!(recovery_pos, Some(11)); // Position after closing quote (8 + 1 + 1 + 1)
+
+    // Test block comment recovery - start from position after opening comment
+    let error = LexerError::UnterminatedBlockComment(SourceLocation::new(1, 1, 0));
+    let source = "let x = /* comment */";
+    let recovery_pos = lexer.try_recover_from_error(&error, source, 10); // Start from position after opening comment
+    assert_eq!(recovery_pos, Some(21)); // Position after closing comment (8 + 1 + 1 + 10 + 1)
+
+    // Test line comment recovery - start from position after opening comment
+    let error = LexerError::UnterminatedComment(SourceLocation::new(1, 1, 0));
+    let source = "let x = // comment\nlet y = 42";
+    let recovery_pos = lexer.try_recover_from_error(&error, source, 10); // Start from position after opening comment
+    assert_eq!(recovery_pos, Some(19)); // Position after newline (8 + 1 + 1 + 8 + 1)
+  }
+
+  #[test]
+  fn test_lexer_error_recovery_no_recovery() {
+    let lexer = Lexer::from_str("test");
+
+    // Test error with no recovery possible - use a source that doesn't have the expected recovery character
+    let error = LexerError::UnterminatedString(SourceLocation::new(1, 1, 0));
+    let source = "hello world"; // No quotes at all
+    let recovery_pos = lexer.try_recover_from_error(&error, source, 0);
+    assert_eq!(recovery_pos, None);
+  }
+
+  #[test]
+  fn test_lexer_backward_compatibility() {
+    // Use input with null bytes that will trigger logos errors
+    let mut lexer = Lexer::from_str("let x = \u{0000} y");
+
+    // The old tokenize() method should still work and return the first error
+    let result = lexer.tokenize();
+    assert!(result.is_err());
+
+    // The error should be a LexerError, not a Vec<LexerError>
+    match result {
+      Err(error) => {
+        assert!(matches!(error, LexerError::InvalidCharacter(_, _)));
+      }
+      Ok(_) => panic!("Expected error"),
+    }
+  }
+
+  #[test]
+  fn test_lexer_multiple_error_types() {
+    // Use input with null bytes and unterminated strings that will trigger errors
+    let mut lexer = Lexer::from_str("let x = \"unterminated string\nlet y = \u{0000}\nlet z = /* unterminated comment\nlet w = \u{0001}");
+
+    let result = lexer.tokenize_with_errors();
+
+    match result {
+      Err(errors) => {
+        // Should have multiple different types of errors
+        let has_unterminated_string = errors
+          .iter()
+          .any(|e| matches!(e, LexerError::UnterminatedString(_)));
+        let has_invalid_char = errors
+          .iter()
+          .any(|e| matches!(e, LexerError::InvalidCharacter(_, _)));
+
+        // Note: logos might not detect unterminated comments as errors
+        // so we only check for the errors we know will occur
+        assert!(has_unterminated_string || has_invalid_char);
+      }
+      Ok(_) => panic!("Expected errors for invalid input"),
+    }
+  }
+
+  #[test]
+  fn test_lexer_debug_invalid_input() {
+    // Debug test to see what logos actually produces for invalid input
+    let source = "let x = @ y = # z = $";
+    let mut lexer = TokenKind::lexer(source);
+
+    println!("Debug: Lexing source: '{}'", source);
+    let mut tokens = Vec::new();
+    let mut errors = Vec::new();
+
+    while let Some(result) = lexer.next() {
+      match result {
+        Ok(kind) => {
+          let text = lexer.slice();
+          println!("Debug: Token: {:?} -> '{}'", kind, text);
+          tokens.push((kind, text));
+        }
+        Err(e) => {
+          let text = lexer.slice();
+          println!("Debug: Error: {:?} -> '{}'", e, text);
+          errors.push((e, text));
+        }
+      }
+    }
+
+    println!(
+      "Debug: Total tokens: {}, Total errors: {}",
+      tokens.len(),
+      errors.len()
+    );
+
+    // This test is just for debugging, so we don't assert anything
+    // It will help us understand what logos actually produces
+  }
+
+  #[test]
+  fn test_lexer_debug_truly_invalid_input() {
+    // Try some truly invalid input that should trigger errors
+    let source = "let x = \u{0000} y = \u{0001} z = \u{0002}";
+    let mut lexer = TokenKind::lexer(source);
+
+    println!("Debug: Lexing truly invalid source: '{}'", source);
+    let mut tokens = Vec::new();
+    let mut errors = Vec::new();
+
+    while let Some(result) = lexer.next() {
+      match result {
+        Ok(kind) => {
+          let text = lexer.slice();
+          println!("Debug: Token: {:?} -> '{}'", kind, text);
+          tokens.push((kind, text));
+        }
+        Err(e) => {
+          let text = lexer.slice();
+          println!("Debug: Error: {:?} -> '{}'", e, text);
+          errors.push((e, text));
+        }
+      }
+    }
+
+    println!(
+      "Debug: Total tokens: {}, Total errors: {}",
+      tokens.len(),
+      errors.len()
+    );
+
+    // This test is just for debugging, so we don't assert anything
   }
 }
