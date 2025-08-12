@@ -1,0 +1,75 @@
+# Cargo-deny configuration for the Lattice project
+# This file configures license checking, security advisories, and dependency policies
+
+[advisories]
+# Check for security advisories
+db-path = "~/.cargo/advisory-db"
+db-url = "https://github.com/rustsec/advisory-db"
+vulnerability = "deny"
+unsound = "deny"
+notice = "warn"
+ignore = [
+    # Add any advisories to ignore here if needed
+]
+
+[licenses]
+# License policy
+default = "deny"
+copyleft = "deny"
+# Allow permissive licenses
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Unlicense",
+    "Zlib",
+    "CC0-1.0",
+]
+# Deny restrictive licenses
+deny = [
+    "GPL-2.0",
+    "GPL-3.0",
+    "LGPL-2.0",
+    "LGPL-2.1",
+    "LGPL-3.0",
+    "AGPL-1.0",
+    "AGPL-3.0",
+    "MPL-1.0",
+    "MPL-2.0",
+]
+# Exemptions for specific crates if needed
+exempt = [
+    # Example: { name = "some-crate", version = "1.0.0", license = "GPL-3.0" }
+]
+
+[bans]
+# Dependency ban policy
+multiple-versions = "warn"
+# Ban specific crates if needed
+deny = [
+    # Example: { name = "malicious-crate", version = "*" }
+]
+# Allow specific versions of banned crates if needed
+allow = [
+    # Example: { name = "banned-crate", version = "1.0.0" }
+]
+# Skip specific crates from ban checking
+skip = [
+    # Example: "some-crate"
+]
+
+[source]
+# Source registry configuration
+registry = "https://github.com/rust-lang/crates.io-index"
+# Alternative registries if needed
+# alt-registries = { "alt" = "https://alt-registry.com" }
+
+[target.'cfg(windows)'.registry]
+# Windows-specific registry if needed
+# registry = "https://windows-registry.com"
+
+[target.'cfg(unix)'.registry]
+# Unix-specific registry if needed
+# registry = "https://unix-registry.com" 
