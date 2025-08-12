@@ -68,7 +68,7 @@
         "dependencies": [
           1
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -119,8 +119,8 @@
             "dependencies": [
               "2.4"
             ],
-            "details": "Create a separate lexer module in the lattice-compiler crate with a well-defined public API. Implement a Lexer struct that wraps the logos lexer and provides an iterator interface for tokens. Add configuration options for the lexer (e.g., handling of comments, error recovery behavior). Implement utility functions for common lexing tasks. Create documentation with examples for the public API. Ensure the API is ergonomic for the parser to consume.",
-            "status": "pending",
+            "details": "Create a separate lexer module in the lattice-compiler crate with a well-defined public API. Implement a Lexer struct that wraps the logos lexer and provides an iterator interface for tokens. Add configuration options for the lexer (e.g., handling of comments, error recovery behavior). Implement utility functions for common lexing tasks. Create documentation with examples for the public API. Ensure the API is ergonomic for the parser to consume.\n<info added on 2025-08-12T01:28:45.835Z>\nTest fixes have been completed for the lexer module. The issue was that tests were using '@' as an invalid character, but it's actually a valid token in Lattice. Fixed tests now use null characters (\\u{0000}) to properly test error handling. All 45 unit tests and 7 doctests are now passing. Modifications were made to test_lexer_error_recovery in lexer.rs and test_lex_with_errors_convenience_function and test_public_api_integration in mod.rs, along with doctest examples. The lexer error handling system correctly detects and reports errors for invalid characters while continuing to process valid tokens.\n</info added on 2025-08-12T01:28:45.835Z>",
+            "status": "done",
             "testStrategy": "Create integration tests that use the public API to lex various Lattice code snippets. Test the iterator interface with different input sizes. Implement property-based testing using proptest (^1.2.0) to generate random valid and invalid inputs. Benchmark lexing performance on large files to ensure efficiency."
           }
         ]
@@ -1724,7 +1724,7 @@
     ],
     "metadata": {
       "created": "2025-08-11T22:13:45.171Z",
-      "updated": "2025-08-12T01:13:45.184Z",
+      "updated": "2025-08-12T01:28:59.517Z",
       "description": "Tasks for master context"
     }
   }
