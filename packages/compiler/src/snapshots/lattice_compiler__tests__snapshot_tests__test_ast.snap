@@ -1,0 +1,5 @@
+---
+source: packages/compiler/src/lib.rs
+expression: "format!(\"{:?}\", test_ast.source)"
+---
+"let x = 42"
