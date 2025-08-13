@@ -204,7 +204,7 @@
         "dependencies": [
           3
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -212,7 +212,7 @@
             "description": "Create the fundamental data structures to represent Lattice's type system, including primitive types, function types, type variables, and algebraic data types.",
             "dependencies": [],
             "details": "Implement Rust structs and enums to represent: primitive types (Int, Float, Bool, String), function types with parameter and return types, type variables for polymorphism, algebraic data types (product/sum types), and effect types. Design these structures to be immutable and efficiently cloneable. Use the im crate (^15.1.0) for persistent data structures where appropriate. Ensure the type representation is memory-efficient and supports the needs of type inference.",
-            "status": "in-progress",
+            "status": "done",
             "testStrategy": "Write unit tests for each type representation. Test creation, comparison, and basic operations on all type variants. Verify memory efficiency with larger type structures. Test serialization/deserialization of types if applicable."
           },
           {
@@ -223,7 +223,7 @@
               "4.1"
             ],
             "details": "Implement a TypeEnvironment structure using immutable maps from the im crate to maintain identifier-to-type bindings. Support operations for adding bindings, looking up types, and creating child scopes with inheritance. Implement proper scoping rules to handle shadowing of identifiers. Design the environment to efficiently support type checking and inference operations. Include functionality to merge environments when necessary.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test environment creation, binding addition, and type lookup. Verify correct scoping behavior with nested environments. Test shadowing cases. Benchmark performance with large numbers of bindings."
           },
           {
@@ -234,7 +234,7 @@
               "4.1"
             ],
             "details": "Implement structural equality checking for types. Develop a unification algorithm that can combine two types if they are compatible, or fail with appropriate error information if not. Handle special cases like type variables, recursive types, and polymorphic types. Implement occurs check to prevent infinite types. Ensure the unification algorithm is efficient for complex type structures.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Create comprehensive tests for type equality with various type combinations. Test unification with simple and complex types. Verify correct handling of type variables. Test edge cases like recursive types and occurs check failures."
           },
           {
@@ -246,7 +246,7 @@
               "4.3"
             ],
             "details": "Implement a substitution mechanism that can replace type variables with other types throughout a type expression. Support applying multiple substitutions efficiently. Handle recursive substitutions correctly. Ensure substitutions preserve the structure of complex types. Design the substitution mechanism to work with the immutable type representations.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test substitution with various type structures. Verify correct handling of nested type variables. Test substitution chains and recursive substitutions. Benchmark performance with complex type expressions."
           },
           {
@@ -257,7 +257,7 @@
               "4.1"
             ],
             "details": "Implement pretty-printing for all type variants. Format types according to standard notation (e.g., 'Int -> String' for function types). Handle complex nested types with appropriate parentheses. Support customizable formatting options for different contexts (error messages, debug output, etc.). Implement concise representation of complex types to avoid overwhelming output.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test pretty-printing of all type variants. Verify correct formatting of complex nested types. Test readability of output for various type combinations. Verify that type variables are displayed consistently."
           }
         ]
@@ -1724,7 +1724,7 @@
     ],
     "metadata": {
       "created": "2025-08-11T22:13:45.171Z",
-      "updated": "2025-08-12T20:49:32.307Z",
+      "updated": "2025-08-13T03:30:59.517Z",
       "description": "Tasks for master context"
     }
   }
