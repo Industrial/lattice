@@ -85,6 +85,15 @@
         entry = "cargo llvm-cov --fail-under-lines 80 --fail-under-functions 80";
         pass_filenames = false;
       };
+
+      # Clean coverage files
+      clean-coverage = {
+        enable = true;
+        name = "cargo-clean-coverage";
+        description = "Clean up coverage artifacts";
+        entry = "cargo llvm-cov clean";
+        pass_filenames = false;
+      };
     };
   };
 

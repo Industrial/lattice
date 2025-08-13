@@ -2,6 +2,7 @@
 # Coverage commands
 coverage = "llvm-cov --html --output-dir target/coverage --open"
 coverage-check = "llvm-cov --fail-under-lines 80 --fail-under-functions 80"
+clean-coverage = "llvm-cov clean"
 
 [target.x86_64-unknown-linux-gnu]
 # Coverage settings
