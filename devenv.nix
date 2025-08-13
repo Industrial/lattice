@@ -81,7 +81,7 @@ in {
         enable = true;
         name = "cargo-test-coverage-cleanup";
         description = "Run tests with coverage (80% threshold) and clean up artifacts";
-        entry = "bash -c 'cargo llvm-cov test --fail-under-lines 80 --fail-under-functions 80 && cargo llvm-cov clean'";
+        entry = "bash -c 'cargo llvm-cov test --fail-under-lines 80 --fail-under-functions 80 --no-clean && cargo llvm-cov report --html'";
         pass_filenames = false;
       };
     };

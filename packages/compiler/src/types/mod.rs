@@ -16,16 +16,16 @@ mod tests {
     // Test that all modules can be imported
     use environment::TypeEnvironment;
     use inference::TypeInference;
-    use types::PlaceholderType;
+    use types::{PrimitiveType, Type};
 
     // Test that types can be instantiated
     let env = TypeEnvironment::new();
     let inference = TypeInference::new();
-    let ty = PlaceholderType::new();
+    let ty = Type::primitive(PrimitiveType::Int);
 
     assert!(matches!(env, TypeEnvironment));
     assert!(matches!(inference, TypeInference));
-    assert!(matches!(ty, PlaceholderType));
+    assert!(matches!(ty, Type::Primitive(PrimitiveType::Int)));
   }
 
   #[test]
@@ -42,7 +42,7 @@ mod tests {
     // This test ensures the module structure is accessible
     let _env = environment::TypeEnvironment::new();
     let _inference = inference::TypeInference::new();
-    let _ty = types::PlaceholderType::new();
+    let _ty = types::Type::primitive(types::PrimitiveType::Int);
   }
 }
 
