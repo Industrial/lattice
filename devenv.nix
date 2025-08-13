@@ -106,6 +106,11 @@ in {
       version = "0.1.0";
       pname = "lattice";
       root = ./.;
+      doCheck = true;
+      doInstallCheck = true;
+      doDoc = true;
+      doDocFail = true;
+      # cargoTestArgs = "--all-features";
     };
   };
 }
