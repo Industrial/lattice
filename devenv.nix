@@ -72,7 +72,7 @@ in {
         enable = true;
         name = "cargo-build";
         description = "Check that the project builds";
-        entry = "cargo build";
+        entry = "bin/build";
         pass_filenames = false;
       };
 
@@ -81,7 +81,7 @@ in {
         enable = true;
         name = "cargo-test-coverage-cleanup";
         description = "Run tests with coverage (80% threshold) and clean up artifacts";
-        entry = "bash -c 'cargo llvm-cov test --fail-under-lines 80 --fail-under-functions 80 --no-clean && cargo llvm-cov report --html'";
+        entry = "bin/test-coverage";
         pass_filenames = false;
       };
     };
@@ -90,14 +90,8 @@ in {
   # Automatic commands
   enterShell = ''
     echo "🦀 Running initial cargo build..."
-    cargo build
+    bin/build
   '';
-
-  processes = {
-    cargo-watch = {
-      exec = "cargo watch -x check -x test";
-    };
-  };
 
   # Naersk build outputs - these are built on-demand, not during shell init
   outputs = {

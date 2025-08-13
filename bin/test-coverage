@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+echo "> test"
+
+echo "> test > cargo llvm-cov test"
+cargo llvm-cov test \
+  --fail-under-lines 80 \
+  --fail-under-functions 80 \
+  --no-clean
+  
+echo "> test > cargo llvm-cov report"
+cargo llvm-cov report \
+  --html
+
+echo "> test > find . -name '*.profraw' -delete"
+find . -name "*.profraw" -delete
+
+
+
