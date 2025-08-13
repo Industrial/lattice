@@ -68,30 +68,12 @@
         pass_filenames = false;
       };
 
-      # Test
-      test = {
+      # Test coverage and cleanup (runs tests, checks coverage, then cleans up)
+      test-coverage-cleanup = {
         enable = true;
-        name = "cargo-test";
-        description = "Run cargo tests";
-        entry = "cargo test --workspace";
-        pass_filenames = false;
-      };
-
-      # Coverage check
-      coverage = {
-        enable = true;
-        name = "cargo-coverage-check";
-        description = "Check test coverage (80% threshold)";
-        entry = "cargo llvm-cov --fail-under-lines 80 --fail-under-functions 80";
-        pass_filenames = false;
-      };
-
-      # Clean coverage files
-      clean-coverage = {
-        enable = true;
-        name = "cargo-clean-coverage";
-        description = "Clean up coverage artifacts";
-        entry = "cargo llvm-cov clean";
+        name = "cargo-test-coverage-cleanup";
+        description = "Run tests with coverage (80% threshold) and clean up artifacts";
+        entry = "bash -c 'cargo llvm-cov test --fail-under-lines 80 --fail-under-functions 80 && cargo llvm-cov clean'";
         pass_filenames = false;
       };
     };
