@@ -1,4 +1,12 @@
-{pkgs, ...}: {
+{pkgs, ...}: let
+  # Import Naersk for building Rust packages
+  naersk = pkgs.callPackage (pkgs.fetchFromGitHub {
+    owner = "nix-community";
+    repo = "naersk";
+    rev = "master";
+    sha256 = "sha256-uldUBFkZe/E7qbvxa3mH1ItrWZyT6w1dBKJQF/3ZSsc=";
+  }) {};
+in {
   # Name of the project with version
   name = "lattice";
 
@@ -63,7 +71,7 @@
       build = {
         enable = true;
         name = "cargo-build";
-        description = "Check if project builds successfully";
+        description = "Check that the project builds";
         entry = "cargo build";
         pass_filenames = false;
       };
@@ -88,6 +96,16 @@
   processes = {
     cargo-watch = {
       exec = "cargo watch -x check -x test";
+    };
+  };
+
+  # Naersk build outputs - these are built on-demand, not during shell init
+  outputs = {
+    lattice = naersk.buildPackage {
+      name = "lattice";
+      version = "0.1.0";
+      pname = "lattice";
+      root = ./.;
     };
   };
 }
