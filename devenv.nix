@@ -13,6 +13,7 @@
         "rust-analyzer"
         "rustc"
         "rustfmt"
+        "llvm-tools-preview"
       ];
       targets = [
         "wasm32-unknown-unknown"
@@ -27,6 +28,7 @@
     clippy
     rust-analyzer
     rustfmt
+    cargo-llvm-cov
 
     # Development tools
     direnv
@@ -44,34 +46,45 @@
   ];
 
   # Pre-commit hooks
-  pre-commit.hooks = {
-    # Rust checks
-    cargo-check = {
-      enable = true;
-    };
-    clippy = {
-      enable = true;
-    };
-    rustfmt = {
-      enable = true;
-    };
+  git-hooks = {
+    hooks = {
+      # Rust checks
+      cargo-check = {
+        enable = true;
+      };
+      clippy = {
+        enable = true;
+      };
+      rustfmt = {
+        enable = true;
+      };
 
-    # Build check
-    build = {
-      enable = true;
-      name = "cargo-build";
-      description = "Check if project builds successfully";
-      entry = "cargo build";
-      pass_filenames = false;
-    };
+      # Build check
+      build = {
+        enable = true;
+        name = "cargo-build";
+        description = "Check if project builds successfully";
+        entry = "cargo build";
+        pass_filenames = false;
+      };
 
-    # Test
-    test = {
-      enable = true;
-      name = "cargo-test";
-      description = "Run cargo tests";
-      entry = "cargo test --workspace";
-      pass_filenames = false;
+      # Test
+      test = {
+        enable = true;
+        name = "cargo-test";
+        description = "Run cargo tests";
+        entry = "cargo test --workspace";
+        pass_filenames = false;
+      };
+
+      # Coverage check
+      coverage = {
+        enable = true;
+        name = "cargo-coverage-check";
+        description = "Check test coverage (80% threshold)";
+        entry = "cargo llvm-cov --fail-under-lines 80 --fail-under-functions 80";
+        pass_filenames = false;
+      };
     };
   };
 

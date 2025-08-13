@@ -1,0 +1,13 @@
+[alias]
+# Coverage commands
+coverage = "llvm-cov --html --output-dir target/coverage --open"
+coverage-check = "llvm-cov --fail-under-lines 80 --fail-under-functions 80"
+
+[target.x86_64-unknown-linux-gnu]
+# Coverage settings
+rustflags = ["-Cinstrument-coverage"]
+
+[profile.test]
+# Enable coverage for tests
+opt-level = 0
+debug = true 
