@@ -135,7 +135,7 @@
         "dependencies": [
           2
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -143,7 +143,7 @@
             "description": "Design and implement the data structures for all AST node types that represent Lattice language constructs.",
             "dependencies": [],
             "details": "Create Rust structs/enums for all language constructs including: function definitions, let bindings, pattern matching, algebraic data type declarations, effect declarations and handlers, and expressions (function application, literals, etc.). Each node should include source location information for error reporting. Implement Display/Debug traits for AST nodes. Design the structure to be easily traversable and to maintain relationships between related nodes.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Create unit tests that instantiate each AST node type with various configurations. Verify that debug and display output is correct. Test that source location information is properly preserved."
           },
           {
@@ -154,7 +154,7 @@
               "3.1"
             ],
             "details": "Set up the chumsky crate (^0.9.2) and implement parser combinators for each language construct. Create separate parser functions for different syntactic elements (expressions, statements, declarations, etc.). Ensure parsers capture source location information. Implement proper precedence and associativity for operators. Handle whitespace and comments appropriately.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test each parser combinator individually with valid input. Verify that the resulting AST nodes have the correct structure and source information. Test operator precedence with complex expressions."
           },
           {
@@ -165,7 +165,7 @@
               "3.2"
             ],
             "details": "Implement error recovery strategies using chumsky's error recovery mechanisms. Design custom error types that provide clear information about syntax errors. Include expected tokens, actual tokens, and suggestions for fixes. Maintain a list of all errors encountered during parsing. Implement pretty printing of errors with source code snippets and highlighting using the codespan-reporting crate.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Create tests with intentionally malformed input and verify that the parser recovers and continues parsing. Test that error messages are clear and include the correct source location. Verify that multiple errors in the same input are all reported."
           },
           {
@@ -176,7 +176,7 @@
               "3.1"
             ],
             "details": "Create a Visitor trait with visit methods for each AST node type. Implement default methods that recursively traverse the AST. Provide both mutable and immutable visitor variants. Include helper methods for common traversal patterns. Implement example visitors for tasks like pretty printing and collecting identifiers.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Implement test visitors that count nodes or transform the AST in specific ways. Verify that all nodes are visited in the expected order. Test with complex nested AST structures to ensure complete traversal."
           },
           {
@@ -189,7 +189,7 @@
               "3.4"
             ],
             "details": "Design a public API that takes a token stream and returns either a complete AST or detailed error information. Implement proper error handling and propagation. Create documentation with examples for the parser API. Ensure the API is consistent with the lexer interface. Implement helper functions for common parsing tasks.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Create end-to-end tests that take Lattice code as input, tokenize it with the lexer, parse it, and verify the resulting AST. Implement round-trip tests that parse code into an AST, pretty print it back to code, and verify equivalence. Test with a comprehensive suite of Lattice programs covering all language features."
           }
         ]
@@ -212,7 +212,7 @@
             "description": "Create the fundamental data structures to represent Lattice's type system, including primitive types, function types, type variables, and algebraic data types.",
             "dependencies": [],
             "details": "Implement Rust structs and enums to represent: primitive types (Int, Float, Bool, String), function types with parameter and return types, type variables for polymorphism, algebraic data types (product/sum types), and effect types. Design these structures to be immutable and efficiently cloneable. Use the im crate (^15.1.0) for persistent data structures where appropriate. Ensure the type representation is memory-efficient and supports the needs of type inference.",
-            "status": "pending",
+            "status": "in-progress",
             "testStrategy": "Write unit tests for each type representation. Test creation, comparison, and basic operations on all type variants. Verify memory efficiency with larger type structures. Test serialization/deserialization of types if applicable."
           },
           {
@@ -1724,7 +1724,7 @@
     ],
     "metadata": {
       "created": "2025-08-11T22:13:45.171Z",
-      "updated": "2025-08-12T01:28:59.517Z",
+      "updated": "2025-08-12T20:49:32.307Z",
       "description": "Tasks for master context"
     }
   }

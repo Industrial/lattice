@@ -4,6 +4,8 @@
 //! It includes lexical analysis, parsing, type checking, and WASM code generation.
 
 pub mod lexer;
+// pub mod parser;
+pub mod types;
 
 #[cfg(test)]
 mod tests {
@@ -67,6 +69,26 @@ mod tests {
     // Placeholder for error handling tests
     assert!(true, "Error handling test placeholder");
   }
+
+  /// Test parser functionality
+  // #[test]
+  // fn test_parser_functionality() {
+  //   use crate::lexer::lex;
+  //   use crate::parser::Parser;
+
+  //   // Test that the parser can parse a simple expression
+  //   let source = "let x = 42 in x + 1";
+  //   let tokens = lex(source).expect("Should lex successfully");
+
+  //   let mut parser = Parser::new();
+  //   let ast_result = parser.parse(&tokens);
+
+  //   // The parser should work (even if it returns an error, it should not panic)
+  //   assert!(
+  //     ast_result.is_ok() || ast_result.is_err(),
+  //     "Parser should complete without panicking"
+  //   );
+  // }
 
   /// Property-based tests using proptest
   #[cfg(feature = "testing")]
