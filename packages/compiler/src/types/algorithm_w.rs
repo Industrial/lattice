@@ -64,7 +64,7 @@ impl AlgorithmW {
     /// Create a new Algorithm W engine with a specific environment
     pub fn with_environment(environment: TypeEnvironment) -> Self {
         Self {
-            inference: TypeInference::with_environment(environment),
+            inference: TypeInference::with_environment(environment.clone()),
             environment,
             next_var_id: 0,
         }
@@ -402,7 +402,7 @@ impl AlgorithmW {
             param_types.push(param_type.clone());
 
             // Add to environment (assuming simple identifier patterns for now)
-            if let Pattern::Identifier(identifier) = param {
+            if let Pattern::Variable { identifier, .. } = param {
                 lambda_env.bind(identifier.name.clone(), param_type)?;
             }
         }
@@ -541,6 +541,65 @@ impl AlgorithmW {
         Ok(InferenceResult {
             inferred_type: result_type,
             constraints: Vec::new(),
+            substitution: combined_subst,
+        })
+    }
+
+    /// Infer type for match expressions
+    fn infer_match(
+        &mut self,
+        scrutinee: &Expression,
+        arms: &[MatchArm],
+        span: &Span,
+    ) -> Result<InferenceResult, UnificationError> {
+        // Infer the type of the scrutinee
+        let scrutinee_result = self.infer_expression(scrutinee)?;
+
+        // Infer types for all match arms
+        let mut arm_results = Vec::new();
+        for arm in arms {
+            let arm_result = self.infer_expression(&arm.body)?;
+            arm_results.push(arm_result);
+        }
+
+        // All arms should have the same type
+        if arm_results.is_empty() {
+            return Err(UnificationError::TypeMismatch {
+                expected: Type::primitive(PrimitiveType::Unit),
+                actual: Type::primitive(PrimitiveType::Unit),
+                location: None,
+            });
+        }
+
+        let first_arm_type = arm_results[0].inferred_type.clone();
+        let mut constraints = Vec::new();
+
+        // Create constraints that all arms have the same type
+        for (i, arm_result) in arm_results.iter().enumerate().skip(1) {
+            constraints.push(TypeConstraint::new(
+                first_arm_type.clone(),
+                arm_result.inferred_type.clone(),
+                *span,
+                format!("Match arm {} must have the same type as first arm", i),
+            ));
+        }
+
+        // Combine all substitutions
+        let mut combined_subst = scrutinee_result.substitution;
+        for arm_result in &arm_results {
+            combined_subst = combined_subst.compose(&arm_result.substitution);
+        }
+
+        // The result type is the type of the first arm (after unification)
+        let result_type = combined_subst.apply(&first_arm_type);
+
+        // Collect all constraints
+        let mut all_constraints = scrutinee_result.constraints;
+        all_constraints.extend(constraints);
+
+        Ok(InferenceResult {
+            inferred_type: result_type,
+            constraints: all_constraints,
             substitution: combined_subst,
         })
     }

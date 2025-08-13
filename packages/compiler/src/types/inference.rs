@@ -235,6 +235,11 @@ pub enum UnificationError {
     actual: Option<Type>,
     location: Option<TypeLocation>,
   },
+  /// Binding error (e.g., duplicate variable names)
+  BindingError {
+    message: String,
+    location: Option<TypeLocation>,
+  },
 }
 
 impl fmt::Display for UnificationError {
@@ -313,6 +318,22 @@ impl fmt::Display for UnificationError {
         }
         Ok(())
       }
+      UnificationError::BindingError { message, location } => {
+        write!(f, "Binding error: {}", message)?;
+        if let Some(loc) = location {
+          write!(f, " at {}", loc)?;
+        }
+        Ok(())
+      }
+    }
+  }
+}
+
+impl From<String> for UnificationError {
+  fn from(message: String) -> Self {
+    UnificationError::BindingError {
+      message,
+      location: None,
     }
   }
 }

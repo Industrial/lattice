@@ -3,6 +3,7 @@
 //! This module provides the core type system data structures and functionality
 //! for type checking and inference in the Lattice compiler.
 
+// pub mod algorithm_w;
 pub mod environment;
 pub mod inference;
 pub mod types;
@@ -46,6 +47,7 @@ mod tests {
   }
 }
 
+// pub use algorithm_w::*;
 pub use environment::*;
 pub use inference::*;
 pub use types::*;
