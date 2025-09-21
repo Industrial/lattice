@@ -5,6 +5,7 @@
 //! and type expressions.
 
 use crate::lexer::{SourceLocation, Token};
+use crate::types::types::Type;
 use std::fmt;
 
 /// Represents a span in the source code (start to end location)
@@ -349,14 +350,15 @@ impl fmt::Display for TypeExpr {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expression {
   /// Literal expression
-  Literal { literal: Literal, span: Span },
+  Literal { literal: Literal, span: Span, type_annotation: Option<Type> },
   /// Variable reference
-  Variable { identifier: Identifier, span: Span },
+  Variable { identifier: Identifier, span: Span, type_annotation: Option<Type> },
   /// Function application (e.g., `f(x, y)`)
   Application {
     function: Box<Expression>,
     arguments: Vec<Expression>,
     span: Span,
+    type_annotation: Option<Type>,
   },
   /// Binary operation (e.g., `x + y`)
   BinaryOp {
@@ -364,18 +366,21 @@ pub enum Expression {
     operator: BinaryOperator,
     right: Box<Expression>,
     span: Span,
+    type_annotation: Option<Type>,
   },
   /// Unary operation (e.g., `!x`)
   UnaryOp {
     operator: UnaryOperator,
     operand: Box<Expression>,
     span: Span,
+    type_annotation: Option<Type>,
   },
   /// Let expression (e.g., `let x = 42 in x + 1`)
   Let {
     bindings: Vec<Binding>,
     body: Box<Expression>,
     span: Span,
+    type_annotation: Option<Type>,
   },
   /// If expression (e.g., `if x > 0 then x else -x`)
   If {
@@ -383,40 +388,47 @@ pub enum Expression {
     then_branch: Box<Expression>,
     else_branch: Box<Expression>,
     span: Span,
+    type_annotation: Option<Type>,
   },
   /// Match expression (e.g., `match x with | Some(y) => y | None => 0`)
   Match {
     scrutinee: Box<Expression>,
     arms: Vec<MatchArm>,
     span: Span,
+    type_annotation: Option<Type>,
   },
   /// Lambda expression (e.g., `\x -> x + 1`)
   Lambda {
     parameters: Vec<Pattern>,
     body: Box<Expression>,
     span: Span,
+    type_annotation: Option<Type>,
   },
   /// Tuple expression (e.g., `(x, y)`)
   Tuple {
     elements: Vec<Expression>,
     span: Span,
+    type_annotation: Option<Type>,
   },
   /// List expression (e.g., `[1, 2, 3]`)
   List {
     elements: Vec<Expression>,
     span: Span,
+    type_annotation: Option<Type>,
   },
   /// Effect operation (e.g., `do Get`)
   EffectOp {
     operation: Identifier,
     arguments: Vec<Expression>,
     span: Span,
+    type_annotation: Option<Type>,
   },
   /// Effect handler (e.g., `handle e with Get => resume 42`)
   Handler {
     expression: Box<Expression>,
     cases: Vec<HandlerCase>,
     span: Span,
+    type_annotation: Option<Type>,
   },
 }
 
@@ -437,6 +449,44 @@ impl Expression {
       Expression::List { span, .. } => *span,
       Expression::EffectOp { span, .. } => *span,
       Expression::Handler { span, .. } => *span,
+    }
+  }
+
+  /// Get the type annotation of the expression
+  pub fn type_annotation(&self) -> Option<&Type> {
+    match self {
+      Expression::Literal { type_annotation, .. } => type_annotation.as_ref(),
+      Expression::Variable { type_annotation, .. } => type_annotation.as_ref(),
+      Expression::Application { type_annotation, .. } => type_annotation.as_ref(),
+      Expression::BinaryOp { type_annotation, .. } => type_annotation.as_ref(),
+      Expression::UnaryOp { type_annotation, .. } => type_annotation.as_ref(),
+      Expression::Let { type_annotation, .. } => type_annotation.as_ref(),
+      Expression::If { type_annotation, .. } => type_annotation.as_ref(),
+      Expression::Match { type_annotation, .. } => type_annotation.as_ref(),
+      Expression::Lambda { type_annotation, .. } => type_annotation.as_ref(),
+      Expression::Tuple { type_annotation, .. } => type_annotation.as_ref(),
+      Expression::List { type_annotation, .. } => type_annotation.as_ref(),
+      Expression::EffectOp { type_annotation, .. } => type_annotation.as_ref(),
+      Expression::Handler { type_annotation, .. } => type_annotation.as_ref(),
+    }
+  }
+
+  /// Set the type annotation of the expression
+  pub fn set_type_annotation(&mut self, annotation: Option<Type>) {
+    match self {
+      Expression::Literal { type_annotation, .. } => *type_annotation = annotation,
+      Expression::Variable { type_annotation, .. } => *type_annotation = annotation,
+      Expression::Application { type_annotation, .. } => *type_annotation = annotation,
+      Expression::BinaryOp { type_annotation, .. } => *type_annotation = annotation,
+      Expression::UnaryOp { type_annotation, .. } => *type_annotation = annotation,
+      Expression::Let { type_annotation, .. } => *type_annotation = annotation,
+      Expression::If { type_annotation, .. } => *type_annotation = annotation,
+      Expression::Match { type_annotation, .. } => *type_annotation = annotation,
+      Expression::Lambda { type_annotation, .. } => *type_annotation = annotation,
+      Expression::Tuple { type_annotation, .. } => *type_annotation = annotation,
+      Expression::List { type_annotation, .. } => *type_annotation = annotation,
+      Expression::EffectOp { type_annotation, .. } => *type_annotation = annotation,
+      Expression::Handler { type_annotation, .. } => *type_annotation = annotation,
     }
   }
 }
@@ -783,21 +833,23 @@ impl fmt::Display for HandlerCase {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Statement {
   /// Expression statement
-  Expression { expression: Expression, span: Span },
+  Expression { expression: Expression, span: Span, type_annotation: Option<Type> },
   /// Let binding statement
-  Let { binding: Binding, span: Span },
+  Let { binding: Binding, span: Span, type_annotation: Option<Type> },
   /// Type declaration
   Type {
     name: Identifier,
     parameters: Vec<Identifier>,
     variants: Vec<TypeVariant>,
     span: Span,
+    type_annotation: Option<Type>,
   },
   /// Effect declaration
   Effect {
     name: Identifier,
     operations: Vec<EffectOperation>,
     span: Span,
+    type_annotation: Option<Type>,
   },
   /// Function declaration
   Function {
@@ -806,6 +858,7 @@ pub enum Statement {
     return_type: Option<TypeExpr>,
     body: Expression,
     span: Span,
+    type_annotation: Option<Type>,
   },
 }
 
@@ -818,6 +871,28 @@ impl Statement {
       Statement::Type { span, .. } => *span,
       Statement::Effect { span, .. } => *span,
       Statement::Function { span, .. } => *span,
+    }
+  }
+
+  /// Get the type annotation of the statement
+  pub fn type_annotation(&self) -> Option<&Type> {
+    match self {
+      Statement::Expression { type_annotation, .. } => type_annotation.as_ref(),
+      Statement::Let { type_annotation, .. } => type_annotation.as_ref(),
+      Statement::Type { type_annotation, .. } => type_annotation.as_ref(),
+      Statement::Effect { type_annotation, .. } => type_annotation.as_ref(),
+      Statement::Function { type_annotation, .. } => type_annotation.as_ref(),
+    }
+  }
+
+  /// Set the type annotation of the statement
+  pub fn set_type_annotation(&mut self, annotation: Option<Type>) {
+    match self {
+      Statement::Expression { type_annotation, .. } => *type_annotation = annotation,
+      Statement::Let { type_annotation, .. } => *type_annotation = annotation,
+      Statement::Type { type_annotation, .. } => *type_annotation = annotation,
+      Statement::Effect { type_annotation, .. } => *type_annotation = annotation,
+      Statement::Function { type_annotation, .. } => *type_annotation = annotation,
     }
   }
 }

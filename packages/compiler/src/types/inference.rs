@@ -152,6 +152,10 @@ impl Substitution {
         let new_params: Vec<Type> = params.iter().map(|param| self.apply(param)).collect();
         Type::generic(name.clone(), new_params)
       }
+      Type::Polymorphic(poly) => {
+        let new_body = self.apply(&poly.body);
+        Type::polymorphic(poly.variables.clone(), new_body)
+      }
       // Primitive types don't need substitution
       _ => ty.clone(),
     }
@@ -451,6 +455,19 @@ impl TypeInference {
         }
       }
 
+      // Polymorphic types
+      (Type::Polymorphic(left_poly), Type::Polymorphic(right_poly)) => {
+        if left_poly.variables.len() == right_poly.variables.len() {
+          self.unify(&left_poly.body, &right_poly.body)
+        } else {
+          Err(UnificationError::TypeMismatch {
+            expected: left.clone(),
+            actual: right.clone(),
+            location: None,
+          })
+        }
+      }
+
       // Incompatible types
       _ => Err(UnificationError::TypeMismatch {
         expected: left.clone(),
@@ -691,6 +708,55 @@ impl TypeInference {
   pub fn next_var_id(&self) -> u64 {
     self.next_var_id
   }
+
+  /// Generalize a type with respect to the current environment
+  /// Converts free type variables into universally quantified variables
+  pub fn generalize(&self, ty: &Type) -> Type {
+    let free_vars = self.get_free_variables(ty);
+    if free_vars.is_empty() {
+      ty.clone()
+    } else {
+      Type::polymorphic(free_vars, ty.clone())
+    }
+  }
+
+  /// Instantiate a polymorphic type by replacing quantified variables with fresh type variables
+  pub fn instantiate(&mut self, poly_type: &Type) -> Type {
+    match poly_type {
+      Type::Polymorphic(poly) => {
+        let mut substitution = Substitution::new();
+
+        // Create fresh type variables for each quantified variable
+        for var in &poly.variables {
+          let fresh_var = self.fresh_type_variable();
+          substitution.bind(var.id, fresh_var).unwrap_or_else(|_| {
+            // This shouldn't happen with fresh variables
+          });
+        }
+
+        // Apply the substitution to the body
+        substitution.apply(&poly.body)
+      }
+      _ => poly_type.clone(),
+    }
+  }
+
+  /// Get free type variables in a type that are not bound in the current environment
+  fn get_free_variables(&self, ty: &Type) -> Vec<super::types::TypeVariable> {
+    let all_vars = ty.get_variables();
+    let mut free_vars = Vec::new();
+
+    for var in all_vars {
+      // For now, we consider all type variables as free if they're not in our substitution
+      // This is a simplified approach - in a full implementation, we'd track bound variables
+      // in the environment more carefully
+      if !self.substitution.mappings.contains_key(&var.id) {
+        free_vars.push(var);
+      }
+    }
+
+    free_vars
+  }
 }
 
 impl Default for TypeInference {
@@ -701,7 +767,7 @@ impl Default for TypeInference {
 
 #[cfg(test)]
 mod tests {
-  use super::super::types::{PrimitiveType, Type};
+  use super::super::types::{PrimitiveType, Type, TypeVariable};
   use super::*;
 
   #[test]
@@ -828,6 +894,72 @@ mod tests {
       assert!(msg.contains("Occurs check failed"));
     } else {
       panic!("Expected occurs check error");
+    }
+  }
+
+  #[test]
+  fn test_generalize() {
+    let mut inference = TypeInference::new();
+    let var1 = inference.fresh_type_variable();
+    let func_type = Type::function(vec![var1.clone()], Type::primitive(PrimitiveType::Int));
+
+    let generalized = inference.generalize(&func_type);
+
+    match generalized {
+      Type::Polymorphic(poly) => {
+        assert_eq!(poly.variables.len(), 1);
+        assert_eq!(poly.variables[0].id, 0); // First generated variable
+      }
+      _ => panic!("Expected polymorphic type"),
+    }
+  }
+
+  #[test]
+  fn test_instantiate() {
+    let mut inference = TypeInference::new();
+    let var1 = Type::var(0);
+    let func_type = Type::function(vec![var1.clone()], Type::primitive(PrimitiveType::Int));
+    let poly_type = Type::polymorphic(vec![TypeVariable::new(0)], func_type);
+
+    let instantiated = inference.instantiate(&poly_type);
+
+    // The instantiated type should have fresh type variables
+    match instantiated {
+      Type::Function(func) => {
+        match &func.parameters[0] {
+          Type::Variable(var) => {
+            assert_eq!(var.id, 0); // Should be the fresh variable
+          }
+          _ => panic!("Expected type variable"),
+        }
+      }
+      _ => panic!("Expected function type"),
+    }
+  }
+
+  #[test]
+  fn test_generalize_and_instantiate_roundtrip() {
+    let mut inference = TypeInference::new();
+    let var1 = inference.fresh_type_variable();
+    let func_type = Type::function(vec![var1.clone()], Type::primitive(PrimitiveType::Int));
+
+    // Generalize the type
+    let generalized = inference.generalize(&func_type);
+
+    // Instantiate it back
+    let instantiated = inference.instantiate(&generalized);
+
+    // The instantiated type should be a function with a fresh type variable
+    match instantiated {
+      Type::Function(func) => {
+        assert_eq!(func.parameters.len(), 1);
+        assert!(matches!(func.parameters[0], Type::Variable(_)));
+        assert_eq!(
+          func.return_type.as_ref(),
+          &Type::primitive(PrimitiveType::Int)
+        );
+      }
+      _ => panic!("Expected function type"),
     }
   }
 }

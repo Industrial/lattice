@@ -308,10 +308,46 @@ impl TypeApplication {
       location: None,
     }
   }
+}
+
+/// Represents a polymorphic type (universally quantified)
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PolymorphicType {
+  /// The quantified type variables
+  pub variables: Vec<TypeVariable>,
+  /// The quantified type
+  pub body: Box<Type>,
+  pub location: Option<TypeLocation>,
+}
+
+impl PolymorphicType {
+  pub fn new(variables: Vec<TypeVariable>, body: Type) -> Self {
+    Self {
+      variables,
+      body: Box::new(body),
+      location: None,
+    }
+  }
 
   pub fn with_location(mut self, location: TypeLocation) -> Self {
     self.location = Some(location);
     self
+  }
+
+  /// Create a polymorphic type from a type and its free variables
+  pub fn forall(free_variables: Vec<TypeVariable>, body: Type) -> Self {
+    Self::new(free_variables, body)
+  }
+}
+
+impl fmt::Display for PolymorphicType {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    if self.variables.is_empty() {
+      write!(f, "{}", self.body)
+    } else {
+      let vars: Vec<String> = self.variables.iter().map(|v| v.to_string()).collect();
+      write!(f, "∀{}. {}", vars.join(" "), self.body)
+    }
   }
 }
 
@@ -426,6 +462,8 @@ pub enum Type {
   Alias(String, Box<Type>),
   /// A generic type
   Generic(String, Vec<Type>),
+  /// A polymorphic type (universally quantified)
+  Polymorphic(PolymorphicType),
 }
 
 impl Type {
@@ -504,6 +542,11 @@ impl Type {
     Type::Generic(name, parameters)
   }
 
+  /// Create a new polymorphic type
+  pub fn polymorphic(variables: Vec<TypeVariable>, body: Type) -> Self {
+    Type::Polymorphic(PolymorphicType::new(variables, body))
+  }
+
   /// Get the location of this type if available
   pub fn location(&self) -> Option<&TypeLocation> {
     match self {
@@ -515,6 +558,7 @@ impl Type {
       Type::Application(a) => a.location.as_ref(),
       Type::Reference(r) => r.location.as_ref(),
       Type::Constrained(c) => c.location.as_ref(),
+      Type::Polymorphic(p) => p.location.as_ref(),
       _ => None,
     }
   }
@@ -537,6 +581,7 @@ impl Type {
       Type::Constrained(c) => c.base_type.contains_variables(),
       Type::Alias(_, t) => t.contains_variables(),
       Type::Generic(_, params) => params.iter().any(|t| t.contains_variables()),
+      Type::Polymorphic(p) => p.body.contains_variables(),
       _ => false,
     }
   }
@@ -592,6 +637,7 @@ impl Type {
           param.collect_variables(vars);
         }
       }
+      Type::Polymorphic(p) => p.body.collect_variables(vars),
       _ => {}
     }
   }
@@ -622,6 +668,7 @@ impl fmt::Display for Type {
           write!(f, "{}<{}>", name, params_str)
         }
       }
+      Type::Polymorphic(p) => write!(f, "{}", p),
     }
   }
 }

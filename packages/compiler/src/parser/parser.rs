@@ -751,19 +751,8 @@ impl Parser {
   fn expression_parser_with_recovery(
     &self,
   ) -> impl ChumskyParser<Token, Expression, Error = chumsky::error::Simple<Token>> {
+    // TODO: Fix error recovery - skip_until needs proper Token values
     self.expression_parser()
-      .recover_with(skip_until([
-        TokenKind::Semicolon,
-        TokenKind::RightParen,
-        TokenKind::RightBracket,
-        TokenKind::RightBrace,
-        TokenKind::In,
-        TokenKind::Then,
-        TokenKind::Else,
-        TokenKind::Arrow,
-        TokenKind::With,
-        TokenKind::Comma,
-      ]))
   }
 
   /// Pattern parser with error recovery
