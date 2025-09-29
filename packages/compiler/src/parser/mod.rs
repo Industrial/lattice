@@ -92,7 +92,7 @@ pub use parser::{Parser, ParserBuilder, ParserConfig};
 pub use visitor::{MutableVisitor, Visitor};
 
 // Module declarations
-mod ast;
+pub mod ast;
 mod errors;
 mod parser;
 mod visitor;

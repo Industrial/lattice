@@ -144,7 +144,11 @@ impl PatternDesugarer {
   }
 
   /// Desugar a match expression into nested if-expressions
-  pub fn desugar_match(&mut self, scrutinee: SimpleExpression, arms: Vec<SimpleMatchArm>) -> SimpleExpression {
+  pub fn desugar_match(
+    &mut self,
+    scrutinee: SimpleExpression,
+    arms: Vec<SimpleMatchArm>,
+  ) -> SimpleExpression {
     if arms.is_empty() {
       // Empty match - this should be caught by type checking
       return SimpleExpression::Literal(SimpleLiteral::Integer(0));
@@ -176,7 +180,11 @@ impl PatternDesugarer {
   }
 
   /// Convert a pattern to a condition expression
-  fn pattern_to_condition(&mut self, scrutinee: &SimpleExpression, pattern: &SimplePattern) -> SimpleExpression {
+  fn pattern_to_condition(
+    &mut self,
+    scrutinee: &SimpleExpression,
+    pattern: &SimplePattern,
+  ) -> SimpleExpression {
     match pattern {
       SimplePattern::Variable(name) => {
         // Variable patterns always match, but we need to bind the variable
@@ -267,7 +275,7 @@ mod tests {
   #[test]
   fn test_desugar_simple_match() {
     let mut desugarer = PatternDesugarer::new();
-    
+
     let scrutinee = SimpleExpression::Variable("x".to_string());
 
     let arms = vec![
@@ -284,7 +292,7 @@ mod tests {
     ];
 
     let result = desugarer.desugar_match(scrutinee, arms);
-    
+
     // The result should be a nested if-expression
     assert!(matches!(result, SimpleExpression::If { .. }));
   }
@@ -292,15 +300,18 @@ mod tests {
   #[test]
   fn test_desugar_variable_pattern() {
     let mut desugarer = PatternDesugarer::new();
-    
+
     let scrutinee = SimpleExpression::Variable("x".to_string());
     let pattern = SimplePattern::Variable("y".to_string());
 
     let condition = desugarer.pattern_to_condition(&scrutinee, &pattern);
-    
+
     // Variable patterns should always match (return true)
-    assert!(matches!(condition, SimpleExpression::Literal(SimpleLiteral::Boolean(true))));
-    
+    assert!(matches!(
+      condition,
+      SimpleExpression::Literal(SimpleLiteral::Boolean(true))
+    ));
+
     // The variable should be bound in the context
     assert!(desugarer.context.bindings.contains_key("y"));
   }
@@ -308,20 +319,26 @@ mod tests {
   #[test]
   fn test_desugar_literal_pattern() {
     let mut desugarer = PatternDesugarer::new();
-    
+
     let scrutinee = SimpleExpression::Variable("x".to_string());
     let pattern = SimplePattern::Literal(SimpleLiteral::Integer(42));
 
     let condition = desugarer.pattern_to_condition(&scrutinee, &pattern);
-    
+
     // Literal patterns should create an equality check
-    assert!(matches!(condition, SimpleExpression::BinaryOp { operator: BinaryOperator::Equal, .. }));
+    assert!(matches!(
+      condition,
+      SimpleExpression::BinaryOp {
+        operator: BinaryOperator::Equal,
+        ..
+      }
+    ));
   }
 
   #[test]
   fn test_desugar_or_pattern() {
     let mut desugarer = PatternDesugarer::new();
-    
+
     let scrutinee = SimpleExpression::Variable("x".to_string());
     let pattern = SimplePattern::Or(
       Box::new(SimplePattern::Literal(SimpleLiteral::Integer(1))),
@@ -329,19 +346,28 @@ mod tests {
     );
 
     let condition = desugarer.pattern_to_condition(&scrutinee, &pattern);
-    
+
     // Or-patterns should create a logical OR condition
-    assert!(matches!(condition, SimpleExpression::BinaryOp { operator: BinaryOperator::Or, .. }));
+    assert!(matches!(
+      condition,
+      SimpleExpression::BinaryOp {
+        operator: BinaryOperator::Or,
+        ..
+      }
+    ));
   }
 
   #[test]
   fn test_desugar_empty_match() {
     let mut desugarer = PatternDesugarer::new();
-    
+
     let scrutinee = SimpleExpression::Variable("x".to_string());
     let result = desugarer.desugar_match(scrutinee, vec![]);
-    
+
     // Empty match should return a default value
-    assert!(matches!(result, SimpleExpression::Literal(SimpleLiteral::Integer(0))));
+    assert!(matches!(
+      result,
+      SimpleExpression::Literal(SimpleLiteral::Integer(0))
+    ));
   }
 }

@@ -4,7 +4,7 @@
 //! inferred type information using the Hindley-Milner type inference system.
 
 use crate::types::inference::TypeInference;
-use crate::types::types::{Type, PrimitiveType, ProductType, SumType};
+use crate::types::types::{PrimitiveType, ProductType, SumType, Type};
 use std::collections::HashMap;
 
 use super::errors::TypeCheckError;
@@ -30,9 +30,15 @@ pub enum SimpleExpression {
   /// Variable reference
   Variable(String),
   /// Function application
-  Application { function: String, arguments: Vec<SimpleExpression> },
+  Application {
+    function: String,
+    arguments: Vec<SimpleExpression>,
+  },
   /// Match expression
-  Match { scrutinee: Box<SimpleExpression>, arms: Vec<SimpleMatchArm> },
+  Match {
+    scrutinee: Box<SimpleExpression>,
+    arms: Vec<SimpleMatchArm>,
+  },
 }
 
 /// Represents a simple match arm
@@ -79,9 +85,10 @@ impl TypeAnnotator {
           })
         }
       }
-      SimpleExpression::Application { function, arguments } => {
-        self.type_check_application(function, arguments)
-      }
+      SimpleExpression::Application {
+        function,
+        arguments,
+      } => self.type_check_application(function, arguments),
       SimpleExpression::Match { scrutinee, arms } => {
         self.type_check_match_expression(scrutinee, arms)
       }
@@ -115,7 +122,9 @@ impl TypeAnnotator {
     let expected_func_type = Type::function(arg_types, return_type.clone());
 
     // Unify with actual function type
-    let subst = self.inference.unify(&func_type, &expected_func_type)
+    let subst = self
+      .inference
+      .unify(&func_type, &expected_func_type)
       .map_err(|e| TypeCheckError::TypeMismatch {
         expected: expected_func_type,
         actual: func_type,
@@ -136,9 +145,7 @@ impl TypeAnnotator {
     let scrutinee_type = self.type_check_expression(scrutinee)?;
 
     if arms.is_empty() {
-      return Err(TypeCheckError::EmptyMatchExpression {
-        location: None,
-      });
+      return Err(TypeCheckError::EmptyMatchExpression { location: None });
     }
 
     // Type check all arms
@@ -159,13 +166,14 @@ impl TypeAnnotator {
 
     let mut unified_type = arm_types[0].clone();
     for arm_type in arm_types.iter().skip(1) {
-      let subst = self.inference.unify(&unified_type, arm_type)
-        .map_err(|e| TypeCheckError::TypeMismatch {
+      let subst = self.inference.unify(&unified_type, arm_type).map_err(|e| {
+        TypeCheckError::TypeMismatch {
           expected: unified_type.clone(),
           actual: arm_type.clone(),
           location: None,
           context: None,
-        })?;
+        }
+      })?;
       unified_type = subst.apply(&unified_type);
     }
 
@@ -234,7 +242,7 @@ mod tests {
   fn test_type_check_literal() {
     let mut annotator = TypeAnnotator::new();
     let expr = SimpleExpression::Literal(Type::primitive(PrimitiveType::Int));
-    
+
     let result = annotator.type_check_expression(&expr);
     assert!(result.is_ok());
     assert_eq!(result.unwrap(), Type::primitive(PrimitiveType::Int));
@@ -244,10 +252,10 @@ mod tests {
   fn test_type_check_variable() {
     let mut annotator = TypeAnnotator::new();
     annotator.add_variable_binding("x".to_string(), Type::primitive(PrimitiveType::Int));
-    
+
     let expr = SimpleExpression::Variable("x".to_string());
     let result = annotator.type_check_expression(&expr);
-    
+
     assert!(result.is_ok());
     assert_eq!(result.unwrap(), Type::primitive(PrimitiveType::Int));
   }
@@ -256,10 +264,10 @@ mod tests {
   fn test_type_check_undefined_variable() {
     let mut annotator = TypeAnnotator::new();
     let expr = SimpleExpression::Variable("x".to_string());
-    
+
     let result = annotator.type_check_expression(&expr);
     assert!(result.is_err());
-    
+
     if let Err(TypeCheckError::UndefinedVariable { name, .. }) = result {
       assert_eq!(name, "x");
     } else {
@@ -270,14 +278,17 @@ mod tests {
   #[test]
   fn test_type_check_match_expression() {
     let mut annotator = TypeAnnotator::new();
-    
+
     // Define Option type
     let option_type = Type::sum(vec![
       ("None".to_string(), None),
-      ("Some".to_string(), Some(Type::primitive(PrimitiveType::Int))),
+      (
+        "Some".to_string(),
+        Some(Type::primitive(PrimitiveType::Int)),
+      ),
     ]);
     annotator.add_type_definition("Option".to_string(), option_type.clone());
-    
+
     // Create match expression
     let scrutinee = SimpleExpression::Variable("opt".to_string());
     let arms = vec![
@@ -290,15 +301,15 @@ mod tests {
         expression: SimpleExpression::Literal(Type::primitive(PrimitiveType::Int)),
       },
     ];
-    
+
     let match_expr = SimpleExpression::Match {
       scrutinee: Box::new(scrutinee),
       arms,
     };
-    
+
     // Add variable binding for scrutinee
     annotator.add_variable_binding("opt".to_string(), option_type);
-    
+
     let result = annotator.type_check_expression(&match_expr);
     assert!(result.is_ok());
     assert_eq!(result.unwrap(), Type::primitive(PrimitiveType::Int));
@@ -307,35 +318,39 @@ mod tests {
   #[test]
   fn test_type_check_match_with_undefined_constructor() {
     let mut annotator = TypeAnnotator::new();
-    
+
     // Define Option type
     let option_type = Type::sum(vec![
       ("None".to_string(), None),
-      ("Some".to_string(), Some(Type::primitive(PrimitiveType::Int))),
+      (
+        "Some".to_string(),
+        Some(Type::primitive(PrimitiveType::Int)),
+      ),
     ]);
     annotator.add_type_definition("Option".to_string(), option_type.clone());
-    
+
     // Create match expression with undefined constructor
     let scrutinee = SimpleExpression::Variable("opt".to_string());
-    let arms = vec![
-      SimpleMatchArm {
-        pattern: "Maybe".to_string(), // This doesn't exist in Option
-        expression: SimpleExpression::Literal(Type::primitive(PrimitiveType::Int)),
-      },
-    ];
-    
+    let arms = vec![SimpleMatchArm {
+      pattern: "Maybe".to_string(), // This doesn't exist in Option
+      expression: SimpleExpression::Literal(Type::primitive(PrimitiveType::Int)),
+    }];
+
     let match_expr = SimpleExpression::Match {
       scrutinee: Box::new(scrutinee),
       arms,
     };
-    
+
     // Add variable binding for scrutinee
     annotator.add_variable_binding("opt".to_string(), option_type);
-    
+
     let result = annotator.type_check_expression(&match_expr);
     assert!(result.is_err());
-    
-    if let Err(TypeCheckError::UndefinedConstructor { constructor_name, .. }) = result {
+
+    if let Err(TypeCheckError::UndefinedConstructor {
+      constructor_name, ..
+    }) = result
+    {
       assert_eq!(constructor_name, "Maybe");
     } else {
       panic!("Expected UndefinedConstructor error");
@@ -345,18 +360,18 @@ mod tests {
   #[test]
   fn test_type_check_empty_match() {
     let mut annotator = TypeAnnotator::new();
-    
+
     let scrutinee = SimpleExpression::Variable("x".to_string());
     let arms = vec![]; // Empty arms
-    
+
     let match_expr = SimpleExpression::Match {
       scrutinee: Box::new(scrutinee),
       arms,
     };
-    
+
     let result = annotator.type_check_expression(&match_expr);
     assert!(result.is_err());
-    
+
     // The error could be either EmptyMatchExpression or UndefinedVariable
     match result {
       Err(TypeCheckError::EmptyMatchExpression { .. }) => {
@@ -366,7 +381,10 @@ mod tests {
         // Also acceptable since scrutinee variable is undefined
       }
       _ => {
-        panic!("Expected EmptyMatchExpression or UndefinedVariable error, got: {:?}", result);
+        panic!(
+          "Expected EmptyMatchExpression or UndefinedVariable error, got: {:?}",
+          result
+        );
       }
     }
   }
@@ -374,20 +392,22 @@ mod tests {
   #[test]
   fn test_type_check_function_application() {
     let mut annotator = TypeAnnotator::new();
-    
+
     // Define a function type: Int -> Int
     let func_type = Type::function(
       vec![Type::primitive(PrimitiveType::Int)],
       Type::primitive(PrimitiveType::Int),
     );
     annotator.add_variable_binding("add_one".to_string(), func_type);
-    
+
     // Create function application: add_one(42)
     let expr = SimpleExpression::Application {
       function: "add_one".to_string(),
-      arguments: vec![SimpleExpression::Literal(Type::primitive(PrimitiveType::Int))],
+      arguments: vec![SimpleExpression::Literal(Type::primitive(
+        PrimitiveType::Int,
+      ))],
     };
-    
+
     let result = annotator.type_check_expression(&expr);
     assert!(result.is_ok());
     assert_eq!(result.unwrap(), Type::primitive(PrimitiveType::Int));
@@ -396,14 +416,14 @@ mod tests {
   #[test]
   fn test_type_check_function_application_wrong_arity() {
     let mut annotator = TypeAnnotator::new();
-    
+
     // Define a function type: Int -> Int
     let func_type = Type::function(
       vec![Type::primitive(PrimitiveType::Int)],
       Type::primitive(PrimitiveType::Int),
     );
     annotator.add_variable_binding("add_one".to_string(), func_type);
-    
+
     // Create function application with wrong number of arguments: add_one(42, 43)
     let expr = SimpleExpression::Application {
       function: "add_one".to_string(),
@@ -412,10 +432,10 @@ mod tests {
         SimpleExpression::Literal(Type::primitive(PrimitiveType::Int)),
       ],
     };
-    
+
     let result = annotator.type_check_expression(&expr);
     assert!(result.is_err());
-    
+
     if let Err(TypeCheckError::TypeMismatch { .. }) = result {
       // Expected error
     } else {

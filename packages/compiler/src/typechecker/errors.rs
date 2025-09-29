@@ -66,9 +66,7 @@ pub enum TypeCheckError {
     location: Option<SourceLocation>,
   },
   /// Empty match expression
-  EmptyMatchExpression {
-    location: Option<SourceLocation>,
-  },
+  EmptyMatchExpression { location: Option<SourceLocation> },
 }
 
 impl fmt::Display for TypeCheckError {
@@ -146,7 +144,10 @@ impl fmt::Display for TypeCheckError {
         }
         Ok(())
       }
-      TypeCheckError::UndefinedType { type_name, location } => {
+      TypeCheckError::UndefinedType {
+        type_name,
+        location,
+      } => {
         write!(f, "Undefined type: {}", type_name)?;
         if let Some(loc) = location {
           write!(f, " at {}", loc)?;
@@ -332,7 +333,10 @@ impl TypeCheckError {
 
         diagnostic
       }
-      TypeCheckError::UndefinedType { type_name, location } => {
+      TypeCheckError::UndefinedType {
+        type_name,
+        location,
+      } => {
         let mut diagnostic = Diagnostic::error()
           .with_message("Undefined type")
           .with_code("E0412");
@@ -359,7 +363,10 @@ impl TypeCheckError {
 
         if let Some(loc) = location {
           diagnostic = diagnostic.with_labels(vec![Label::primary((), loc.offset..loc.offset + 1)
-            .with_message(format!("constructor `{}` is not defined for type `{}`", constructor_name, type_name))]);
+            .with_message(format!(
+              "constructor `{}` is not defined for type `{}`",
+              constructor_name, type_name
+            ))]);
         }
 
         diagnostic = diagnostic.with_notes(vec![
