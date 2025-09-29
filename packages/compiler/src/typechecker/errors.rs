@@ -54,6 +54,21 @@ pub enum TypeCheckError {
     inferred_type: Type,
     location: Option<SourceLocation>,
   },
+  /// Undefined type
+  UndefinedType {
+    type_name: String,
+    location: Option<SourceLocation>,
+  },
+  /// Undefined constructor
+  UndefinedConstructor {
+    constructor_name: String,
+    type_name: String,
+    location: Option<SourceLocation>,
+  },
+  /// Empty match expression
+  EmptyMatchExpression {
+    location: Option<SourceLocation>,
+  },
 }
 
 impl fmt::Display for TypeCheckError {
@@ -126,6 +141,35 @@ impl fmt::Display for TypeCheckError {
           "Type annotation mismatch: annotated {}, inferred {}",
           annotated_type, inferred_type
         )?;
+        if let Some(loc) = location {
+          write!(f, " at {}", loc)?;
+        }
+        Ok(())
+      }
+      TypeCheckError::UndefinedType { type_name, location } => {
+        write!(f, "Undefined type: {}", type_name)?;
+        if let Some(loc) = location {
+          write!(f, " at {}", loc)?;
+        }
+        Ok(())
+      }
+      TypeCheckError::UndefinedConstructor {
+        constructor_name,
+        type_name,
+        location,
+      } => {
+        write!(
+          f,
+          "Undefined constructor: {} for type {}",
+          constructor_name, type_name
+        )?;
+        if let Some(loc) = location {
+          write!(f, " at {}", loc)?;
+        }
+        Ok(())
+      }
+      TypeCheckError::EmptyMatchExpression { location } => {
+        write!(f, "Empty match expression")?;
         if let Some(loc) = location {
           write!(f, " at {}", loc)?;
         }
@@ -288,6 +332,58 @@ impl TypeCheckError {
 
         diagnostic
       }
+      TypeCheckError::UndefinedType { type_name, location } => {
+        let mut diagnostic = Diagnostic::error()
+          .with_message("Undefined type")
+          .with_code("E0412");
+
+        if let Some(loc) = location {
+          diagnostic = diagnostic.with_labels(vec![Label::primary((), loc.offset..loc.offset + 1)
+            .with_message(format!("type `{}` is not defined", type_name))]);
+        }
+
+        diagnostic = diagnostic.with_notes(vec![
+          "Make sure the type is properly imported or defined".to_string(),
+        ]);
+
+        diagnostic
+      }
+      TypeCheckError::UndefinedConstructor {
+        constructor_name,
+        type_name,
+        location,
+      } => {
+        let mut diagnostic = Diagnostic::error()
+          .with_message("Undefined constructor")
+          .with_code("E0425");
+
+        if let Some(loc) = location {
+          diagnostic = diagnostic.with_labels(vec![Label::primary((), loc.offset..loc.offset + 1)
+            .with_message(format!("constructor `{}` is not defined for type `{}`", constructor_name, type_name))]);
+        }
+
+        diagnostic = diagnostic.with_notes(vec![
+          "Make sure the constructor is properly defined for this type".to_string(),
+        ]);
+
+        diagnostic
+      }
+      TypeCheckError::EmptyMatchExpression { location } => {
+        let mut diagnostic = Diagnostic::error()
+          .with_message("Empty match expression")
+          .with_code("E0004");
+
+        if let Some(loc) = location {
+          diagnostic = diagnostic.with_labels(vec![Label::primary((), loc.offset..loc.offset + 1)
+            .with_message("match expression must have at least one arm")]);
+        }
+
+        diagnostic = diagnostic.with_notes(vec![
+          "Add at least one match arm to handle the expression".to_string(),
+        ]);
+
+        diagnostic
+      }
     }
   }
 
@@ -346,6 +442,9 @@ impl TypeCheckError {
       TypeCheckError::GeneralizationError { .. } => "E0282",
       TypeCheckError::InstantiationError { .. } => "E0282",
       TypeCheckError::AnnotationMismatch { .. } => "E0308",
+      TypeCheckError::UndefinedType { .. } => "E0412",
+      TypeCheckError::UndefinedConstructor { .. } => "E0425",
+      TypeCheckError::EmptyMatchExpression { .. } => "E0004",
     }
   }
 

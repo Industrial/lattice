@@ -4,7 +4,7 @@
 //! It includes lexical analysis, parsing, type checking, and WASM code generation.
 
 pub mod lexer;
-// pub mod parser; // Temporarily disabled due to compilation errors
+pub mod parser;
 pub mod typechecker;
 pub mod types;
 
