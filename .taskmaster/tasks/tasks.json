@@ -339,7 +339,7 @@
         "dependencies": [
           5
         ],
-        "status": "done",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -347,7 +347,7 @@
             "description": "Update the parser to support algebraic data type declarations with type parameters and record types with named fields.",
             "dependencies": [],
             "details": "Modify the lexer to recognize new ADT-related keywords. Extend the parser grammar to handle ADT declarations with constructors and type parameters. Add support for record types with named fields. Update the AST to include nodes for ADT declarations. Ensure proper scoping of type variables in ADT declarations. Implement error recovery for malformed ADT declarations.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Create unit tests with various ADT declarations including simple variants, parameterized types, and record types. Test error cases like malformed declarations and invalid type parameters. Verify AST structure for parsed ADTs matches expected output."
           },
           {
@@ -1724,7 +1724,7 @@
     ],
     "metadata": {
       "created": "2025-08-11T22:13:45.171Z",
-      "updated": "2025-09-29T20:51:07.140Z",
+      "updated": "2025-09-29T21:05:54.250Z",
       "description": "Tasks for master context"
     }
   }

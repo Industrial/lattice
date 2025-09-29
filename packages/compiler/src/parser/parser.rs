@@ -360,29 +360,24 @@ impl Parser {
     &self,
   ) -> impl ChumskyParser<Token, Statement, Error = chumsky::error::Simple<Token>> {
     let name = self.identifier_parser();
+    
+    // Optional type parameters: [T, U] or []
     let parameters = just(TokenKind::LeftBracket)
       .ignore_then(
         self
           .identifier_parser()
-          .separated_by(just(TokenKind::Comma)),
+          .separated_by(just(TokenKind::Comma))
+          .collect::<Vec<_>>()
       )
       .then_ignore(just(TokenKind::RightBracket))
-      .or(
-        just(TokenKind::LeftBracket).ignore_then(
-          just(TokenKind::RightBracket)
-            .just(TokenKind::Identifier)
-            .map(|_| Vec::new()),
-        ),
-      )
-      .or(
-        just(TokenKind::Whitespace)
-          .just(TokenKind::Identifier)
-          .map(|_| Vec::new()),
-      );
+      .or_not()
+      .map(|params| params.unwrap_or_else(Vec::new));
 
+    // Variants separated by pipe: Variant1 | Variant2(Type) | Variant3
     let variants = self
       .type_variant_parser()
-      .separated_by(just(TokenKind::Or))
+      .separated_by(just(TokenKind::BitwiseOr))
+      .at_least(1)
       .collect();
 
     just(TokenKind::Type)
@@ -394,7 +389,6 @@ impl Parser {
           name.span.start,
           variants
             .last()
-            .just(TokenKind::Identifier)
             .map(|v| v.span.end)
             .unwrap_or(name.span.end),
         );
