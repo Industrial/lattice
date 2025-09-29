@@ -853,7 +853,39 @@ impl Parser {
           Pattern::List { elements, span }
         });
 
-      choice((variable, wildcard, literal, constructor, tuple, list))
+      // Base patterns without or/as
+      let base_pattern = choice((variable, wildcard, literal, constructor, tuple, list));
+
+      // As-pattern: pattern as identifier
+      let as_pattern = base_pattern
+        .clone()
+        .then_ignore(just(TokenKind::As))
+        .then(self.identifier_parser())
+        .map(|(pattern, identifier)| {
+          let span = Span::new(pattern.span().start, identifier.span.end);
+          Pattern::As {
+            pattern: Box::new(pattern),
+            identifier,
+            span,
+          }
+        });
+
+      // Or-pattern: pattern | pattern
+      let or_pattern = base_pattern
+        .clone()
+        .then_ignore(just(TokenKind::BitwiseOr))
+        .then(pattern.clone())
+        .map(|(left, right)| {
+          let span = Span::new(left.span().start, right.span().end);
+          Pattern::Or {
+            left: Box::new(left),
+            right: Box::new(right),
+            span,
+          }
+        });
+
+      // Combine all pattern types: or-pattern has lower precedence, as-pattern has higher
+      choice((or_pattern, as_pattern, base_pattern))
     })
   }
 

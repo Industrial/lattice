@@ -358,7 +358,7 @@
               "6.1"
             ],
             "details": "Add grammar rules for match expressions and pattern clauses. Support various pattern types including constructor patterns, literal patterns, variable patterns, wildcard patterns, and nested patterns. Implement or-patterns for alternative matching. Update the AST to include nodes for pattern matching expressions. Ensure proper binding of variables in patterns.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Create unit tests with various pattern matching expressions. Test nested patterns, or-patterns, and different pattern types. Verify correct variable binding in patterns. Test error cases like syntactically invalid patterns."
           },
           {
@@ -1724,7 +1724,7 @@
     ],
     "metadata": {
       "created": "2025-08-11T22:13:45.171Z",
-      "updated": "2025-09-29T21:05:54.250Z",
+      "updated": "2025-09-29T21:08:01.830Z",
       "description": "Tasks for master context"
     }
   }
