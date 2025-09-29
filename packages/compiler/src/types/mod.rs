@@ -4,6 +4,7 @@
 //! for type checking and inference in the Lattice compiler.
 
 // pub mod algorithm_w;
+pub mod desugaring;
 pub mod environment;
 pub mod exhaustiveness;
 pub mod inference;
