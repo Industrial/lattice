@@ -5,8 +5,14 @@
 
 // pub mod algorithm_w;
 pub mod environment;
+pub mod exhaustiveness;
 pub mod inference;
 pub mod types;
+
+#[cfg(test)]
+mod adt_tests;
+#[cfg(test)]
+mod pattern_matching_tests;
 
 #[cfg(test)]
 mod tests {
