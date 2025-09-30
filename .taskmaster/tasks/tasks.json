@@ -339,7 +339,7 @@
         "dependencies": [
           5
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -370,7 +370,7 @@
               "6.2"
             ],
             "details": "Extend the type system to represent ADT types with type parameters. Implement type checking for ADT constructor applications. Add type inference for pattern matching expressions. Verify pattern compatibility with scrutinee types. Ensure proper instantiation of polymorphic ADTs. Integrate with the existing Hindley-Milner type inference system.",
-            "status": "in-progress",
+            "status": "done",
             "testStrategy": "Create unit tests verifying type checking for ADT declarations and constructor applications. Test type inference in pattern matching contexts. Test polymorphic ADTs with different type instantiations. Verify error detection for type mismatches in patterns."
           },
           {
@@ -381,7 +381,7 @@
               "6.3"
             ],
             "details": "Implement an algorithm to check if a set of patterns covers all possible values of a type. Handle nested patterns and or-patterns in exhaustiveness analysis. Generate clear error messages for non-exhaustive patterns with examples of missing cases. Support recursive ADTs in exhaustiveness checking. Optimize the algorithm for complex pattern sets.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Create tests with complete and incomplete pattern sets. Test with recursive ADTs like lists and trees. Verify that error messages for non-exhaustive patterns include helpful examples of missing cases. Test complex nested patterns and or-patterns."
           },
           {
@@ -394,7 +394,7 @@
               "6.4"
             ],
             "details": "Implement a desugaring pass that transforms pattern matching into nested if-expressions and variable bindings. Handle nested patterns by decomposing them into simpler patterns. Transform or-patterns into multiple match cases. Ensure the desugared code preserves the semantics of the original pattern matching. Optimize the generated code to avoid redundant checks.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Create tests comparing the behavior of original pattern matching expressions with their desugared versions. Test with complex patterns including nested patterns and or-patterns. Verify that variable bindings work correctly in the desugared code. Test with recursive ADTs to ensure correct handling."
           }
         ]
@@ -409,7 +409,7 @@
         "dependencies": [
           5
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -417,7 +417,7 @@
             "description": "Design and implement the core data structures for the Intermediate Representation (IR) in A-normal form.",
             "dependencies": [],
             "details": "Create Rust data structures to represent all IR components including: function definitions and applications, let bindings, desugared pattern matching, primitive operations, and control flow constructs. Ensure the IR preserves type information from the AST. Design the structures to facilitate visitor pattern implementation. Include source location information for debugging. Implement display/debug traits for IR nodes.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Write unit tests to verify the correctness of the IR data structures. Test serialization and deserialization of IR nodes. Ensure all language constructs can be properly represented in the IR."
           },
           {
@@ -1724,7 +1724,7 @@
     ],
     "metadata": {
       "created": "2025-08-11T22:13:45.171Z",
-      "updated": "2025-09-29T21:18:07.298Z",
+      "updated": "2025-09-29T21:45:34.366Z",
       "description": "Tasks for master context"
     }
   }

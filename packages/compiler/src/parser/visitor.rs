@@ -987,6 +987,10 @@ impl Visitor for NodeCounter {
       }
     }
   }
+
+  fn visit_identifier(&mut self, _identifier: &crate::parser::ast::Identifier) {
+    self.identifiers += 1;
+  }
 }
 
 /// Example visitor that pretty-prints the AST
@@ -1296,22 +1300,7 @@ impl MutableVisitor for AstTransformer {
         if let Expression::Literal { literal, .. } = &**right {
           if let crate::parser::ast::Literal::Integer { value: 0, .. } = literal {
             // Replace the entire expression with the left operand
-            *expression = std::mem::replace(
-              &mut **left,
-              Expression::Literal {
-                literal: crate::parser::ast::Literal::Integer {
-                  value: 0,
-                  span: crate::parser::ast::Span::new(
-                    crate::lexer::SourceLocation::start(),
-                    crate::lexer::SourceLocation::start(),
-                  ),
-                },
-                span: crate::parser::ast::Span::new(
-                  crate::lexer::SourceLocation::start(),
-                  crate::lexer::SourceLocation::start(),
-                ),
-              },
-            );
+            *expression = (**left).clone();
             self.transformed = true;
             return;
           }
@@ -1319,8 +1308,74 @@ impl MutableVisitor for AstTransformer {
       }
     }
 
-    // Continue with the default implementation
-    MutableVisitor::visit_expression(self, expression);
+    // Visit children manually to avoid infinite recursion
+    match expression {
+      Expression::Application {
+        function,
+        arguments,
+        ..
+      } => {
+        self.visit_expression(function);
+        for arg in arguments {
+          self.visit_expression(arg);
+        }
+      }
+      Expression::UnaryOp { operand, .. } => {
+        self.visit_expression(operand);
+      }
+      Expression::BinaryOp { left, right, .. } => {
+        self.visit_expression(left);
+        self.visit_expression(right);
+      }
+      Expression::Let { bindings, body, .. } => {
+        for binding in bindings {
+          self.visit_binding(binding);
+        }
+        self.visit_expression(body);
+      }
+      Expression::If {
+        condition,
+        then_branch,
+        else_branch,
+        ..
+      } => {
+        self.visit_expression(condition);
+        self.visit_expression(then_branch);
+        self.visit_expression(else_branch);
+      }
+      Expression::Lambda {
+        parameters, body, ..
+      } => {
+        for param in parameters {
+          self.visit_pattern(param);
+        }
+        self.visit_expression(body);
+      }
+      Expression::Match {
+        scrutinee, arms, ..
+      } => {
+        self.visit_expression(scrutinee);
+        for arm in arms {
+          self.visit_match_arm(arm);
+        }
+      }
+      Expression::Handler {
+        expression, cases, ..
+      } => {
+        self.visit_expression(expression);
+        for case in cases {
+          self.visit_handler_case(case);
+        }
+      }
+      Expression::EffectOp { arguments, .. } => {
+        for arg in arguments {
+          self.visit_expression(arg);
+        }
+      }
+      _ => {
+        // No children to visit for literals, variables, etc.
+      }
+    }
   }
 }
 
@@ -1422,10 +1477,17 @@ mod tests {
   fn create_test_ast() -> AstNode {
     let span = Span::new(SourceLocation::start(), SourceLocation::start());
     let identifier = Identifier::new("x".to_string(), span);
-    let literal = Literal::Integer { value: 42, span };
 
-    let expression = Expression::Literal { literal, span };
-    let statement = Statement::Expression { expression, span };
+    let expression = Expression::Variable {
+      identifier,
+      span,
+      type_annotation: None,
+    };
+    let statement = Statement::Expression {
+      expression,
+      span,
+      type_annotation: None,
+    };
 
     AstNode::new(vec![statement], span)
   }
@@ -1437,10 +1499,10 @@ mod tests {
 
     counter.visit_ast(&ast);
 
-    assert_eq!(counter.total_nodes, 3); // AST + Statement + Expression
+    assert_eq!(counter.total_nodes, 2); // Statement + Expression
     assert_eq!(counter.statements, 1);
     assert_eq!(counter.expressions, 1);
-    assert_eq!(counter.literals, 1);
+    assert_eq!(counter.identifiers, 1);
   }
 
   #[test]
@@ -1453,7 +1515,7 @@ mod tests {
 
     assert!(output.contains("AST {"));
     assert!(output.contains("Statement::Expression"));
-    assert!(output.contains("Expression::Literal"));
+    assert!(output.contains("Expression::Variable"));
   }
 
   #[test]

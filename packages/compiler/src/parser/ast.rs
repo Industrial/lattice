@@ -350,9 +350,17 @@ impl fmt::Display for TypeExpr {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expression {
   /// Literal expression
-  Literal { literal: Literal, span: Span, type_annotation: Option<Type> },
+  Literal {
+    literal: Literal,
+    span: Span,
+    type_annotation: Option<Type>,
+  },
   /// Variable reference
-  Variable { identifier: Identifier, span: Span, type_annotation: Option<Type> },
+  Variable {
+    identifier: Identifier,
+    span: Span,
+    type_annotation: Option<Type>,
+  },
   /// Function application (e.g., `f(x, y)`)
   Application {
     function: Box<Expression>,
@@ -449,44 +457,97 @@ impl Expression {
       Expression::List { span, .. } => *span,
       Expression::EffectOp { span, .. } => *span,
       Expression::Handler { span, .. } => *span,
+      _ => todo!(),
     }
   }
 
   /// Get the type annotation of the expression
   pub fn type_annotation(&self) -> Option<&Type> {
     match self {
-      Expression::Literal { type_annotation, .. } => type_annotation.as_ref(),
-      Expression::Variable { type_annotation, .. } => type_annotation.as_ref(),
-      Expression::Application { type_annotation, .. } => type_annotation.as_ref(),
-      Expression::BinaryOp { type_annotation, .. } => type_annotation.as_ref(),
-      Expression::UnaryOp { type_annotation, .. } => type_annotation.as_ref(),
-      Expression::Let { type_annotation, .. } => type_annotation.as_ref(),
-      Expression::If { type_annotation, .. } => type_annotation.as_ref(),
-      Expression::Match { type_annotation, .. } => type_annotation.as_ref(),
-      Expression::Lambda { type_annotation, .. } => type_annotation.as_ref(),
-      Expression::Tuple { type_annotation, .. } => type_annotation.as_ref(),
-      Expression::List { type_annotation, .. } => type_annotation.as_ref(),
-      Expression::EffectOp { type_annotation, .. } => type_annotation.as_ref(),
-      Expression::Handler { type_annotation, .. } => type_annotation.as_ref(),
+      Expression::Literal {
+        type_annotation, ..
+      } => type_annotation.as_ref(),
+      Expression::Variable {
+        type_annotation, ..
+      } => type_annotation.as_ref(),
+      Expression::Application {
+        type_annotation, ..
+      } => type_annotation.as_ref(),
+      Expression::BinaryOp {
+        type_annotation, ..
+      } => type_annotation.as_ref(),
+      Expression::UnaryOp {
+        type_annotation, ..
+      } => type_annotation.as_ref(),
+      Expression::Let {
+        type_annotation, ..
+      } => type_annotation.as_ref(),
+      Expression::If {
+        type_annotation, ..
+      } => type_annotation.as_ref(),
+      Expression::Match {
+        type_annotation, ..
+      } => type_annotation.as_ref(),
+      Expression::Lambda {
+        type_annotation, ..
+      } => type_annotation.as_ref(),
+      Expression::Tuple {
+        type_annotation, ..
+      } => type_annotation.as_ref(),
+      Expression::List {
+        type_annotation, ..
+      } => type_annotation.as_ref(),
+      Expression::EffectOp {
+        type_annotation, ..
+      } => type_annotation.as_ref(),
+      Expression::Handler {
+        type_annotation, ..
+      } => type_annotation.as_ref(),
     }
   }
 
   /// Set the type annotation of the expression
   pub fn set_type_annotation(&mut self, annotation: Option<Type>) {
     match self {
-      Expression::Literal { type_annotation, .. } => *type_annotation = annotation,
-      Expression::Variable { type_annotation, .. } => *type_annotation = annotation,
-      Expression::Application { type_annotation, .. } => *type_annotation = annotation,
-      Expression::BinaryOp { type_annotation, .. } => *type_annotation = annotation,
-      Expression::UnaryOp { type_annotation, .. } => *type_annotation = annotation,
-      Expression::Let { type_annotation, .. } => *type_annotation = annotation,
-      Expression::If { type_annotation, .. } => *type_annotation = annotation,
-      Expression::Match { type_annotation, .. } => *type_annotation = annotation,
-      Expression::Lambda { type_annotation, .. } => *type_annotation = annotation,
-      Expression::Tuple { type_annotation, .. } => *type_annotation = annotation,
-      Expression::List { type_annotation, .. } => *type_annotation = annotation,
-      Expression::EffectOp { type_annotation, .. } => *type_annotation = annotation,
-      Expression::Handler { type_annotation, .. } => *type_annotation = annotation,
+      Expression::Literal {
+        type_annotation, ..
+      } => *type_annotation = annotation,
+      Expression::Variable {
+        type_annotation, ..
+      } => *type_annotation = annotation,
+      Expression::Application {
+        type_annotation, ..
+      } => *type_annotation = annotation,
+      Expression::BinaryOp {
+        type_annotation, ..
+      } => *type_annotation = annotation,
+      Expression::UnaryOp {
+        type_annotation, ..
+      } => *type_annotation = annotation,
+      Expression::Let {
+        type_annotation, ..
+      } => *type_annotation = annotation,
+      Expression::If {
+        type_annotation, ..
+      } => *type_annotation = annotation,
+      Expression::Match {
+        type_annotation, ..
+      } => *type_annotation = annotation,
+      Expression::Lambda {
+        type_annotation, ..
+      } => *type_annotation = annotation,
+      Expression::Tuple {
+        type_annotation, ..
+      } => *type_annotation = annotation,
+      Expression::List {
+        type_annotation, ..
+      } => *type_annotation = annotation,
+      Expression::EffectOp {
+        type_annotation, ..
+      } => *type_annotation = annotation,
+      Expression::Handler {
+        type_annotation, ..
+      } => *type_annotation = annotation,
     }
   }
 }
@@ -494,9 +555,18 @@ impl Expression {
 impl fmt::Display for Expression {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
-      Expression::Literal { literal, .. } => write!(f, "{}", literal),
-      Expression::Variable { identifier, .. } => write!(f, "{}", identifier),
+      Expression::Literal {
+        type_annotation: None,
+        literal,
+        ..
+      } => write!(f, "{}", literal),
+      Expression::Variable {
+        type_annotation: None,
+        identifier,
+        ..
+      } => write!(f, "{}", identifier),
       Expression::Application {
+        type_annotation: None,
         function,
         arguments,
         ..
@@ -517,6 +587,7 @@ impl fmt::Display for Expression {
         }
       }
       Expression::BinaryOp {
+        type_annotation: None,
         left,
         operator,
         right,
@@ -525,11 +596,19 @@ impl fmt::Display for Expression {
         write!(f, "{} {} {}", left, operator, right)
       }
       Expression::UnaryOp {
-        operator, operand, ..
+        type_annotation: None,
+        operator,
+        operand,
+        ..
       } => {
         write!(f, "{}{}", operator, operand)
       }
-      Expression::Let { bindings, body, .. } => {
+      Expression::Let {
+        type_annotation: None,
+        bindings,
+        body,
+        ..
+      } => {
         write!(
           f,
           "let {} in {}",
@@ -542,6 +621,7 @@ impl fmt::Display for Expression {
         )
       }
       Expression::If {
+        type_annotation: None,
         condition,
         then_branch,
         else_branch,
@@ -554,7 +634,10 @@ impl fmt::Display for Expression {
         )
       }
       Expression::Match {
-        scrutinee, arms, ..
+        type_annotation: None,
+        scrutinee,
+        arms,
+        ..
       } => {
         write!(
           f,
@@ -568,7 +651,10 @@ impl fmt::Display for Expression {
         )
       }
       Expression::Lambda {
-        parameters, body, ..
+        type_annotation: None,
+        parameters,
+        body,
+        ..
       } => {
         write!(
           f,
@@ -581,7 +667,11 @@ impl fmt::Display for Expression {
           body
         )
       }
-      Expression::Tuple { elements, .. } => {
+      Expression::Tuple {
+        type_annotation: None,
+        elements,
+        ..
+      } => {
         write!(
           f,
           "({})",
@@ -592,7 +682,11 @@ impl fmt::Display for Expression {
             .join(", ")
         )
       }
-      Expression::List { elements, .. } => {
+      Expression::List {
+        type_annotation: None,
+        elements,
+        ..
+      } => {
         write!(
           f,
           "[{}]",
@@ -604,6 +698,7 @@ impl fmt::Display for Expression {
         )
       }
       Expression::EffectOp {
+        type_annotation: None,
         operation,
         arguments,
         ..
@@ -624,7 +719,10 @@ impl fmt::Display for Expression {
         }
       }
       Expression::Handler {
-        expression, cases, ..
+        type_annotation: None,
+        expression,
+        cases,
+        ..
       } => {
         write!(
           f,
@@ -637,6 +735,7 @@ impl fmt::Display for Expression {
             .join(" | ")
         )
       }
+      _ => todo!(),
     }
   }
 }
@@ -833,9 +932,17 @@ impl fmt::Display for HandlerCase {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Statement {
   /// Expression statement
-  Expression { expression: Expression, span: Span, type_annotation: Option<Type> },
+  Expression {
+    expression: Expression,
+    span: Span,
+    type_annotation: Option<Type>,
+  },
   /// Let binding statement
-  Let { binding: Binding, span: Span, type_annotation: Option<Type> },
+  Let {
+    binding: Binding,
+    span: Span,
+    type_annotation: Option<Type>,
+  },
   /// Type declaration
   Type {
     name: Identifier,
@@ -871,28 +978,50 @@ impl Statement {
       Statement::Type { span, .. } => *span,
       Statement::Effect { span, .. } => *span,
       Statement::Function { span, .. } => *span,
+      _ => todo!(),
+      _ => todo!(),
     }
   }
 
   /// Get the type annotation of the statement
   pub fn type_annotation(&self) -> Option<&Type> {
     match self {
-      Statement::Expression { type_annotation, .. } => type_annotation.as_ref(),
-      Statement::Let { type_annotation, .. } => type_annotation.as_ref(),
-      Statement::Type { type_annotation, .. } => type_annotation.as_ref(),
-      Statement::Effect { type_annotation, .. } => type_annotation.as_ref(),
-      Statement::Function { type_annotation, .. } => type_annotation.as_ref(),
+      Statement::Expression {
+        type_annotation, ..
+      } => type_annotation.as_ref(),
+      Statement::Let {
+        type_annotation, ..
+      } => type_annotation.as_ref(),
+      Statement::Type {
+        type_annotation, ..
+      } => type_annotation.as_ref(),
+      Statement::Effect {
+        type_annotation, ..
+      } => type_annotation.as_ref(),
+      Statement::Function {
+        type_annotation, ..
+      } => type_annotation.as_ref(),
     }
   }
 
   /// Set the type annotation of the statement
   pub fn set_type_annotation(&mut self, annotation: Option<Type>) {
     match self {
-      Statement::Expression { type_annotation, .. } => *type_annotation = annotation,
-      Statement::Let { type_annotation, .. } => *type_annotation = annotation,
-      Statement::Type { type_annotation, .. } => *type_annotation = annotation,
-      Statement::Effect { type_annotation, .. } => *type_annotation = annotation,
-      Statement::Function { type_annotation, .. } => *type_annotation = annotation,
+      Statement::Expression {
+        type_annotation, ..
+      } => *type_annotation = annotation,
+      Statement::Let {
+        type_annotation, ..
+      } => *type_annotation = annotation,
+      Statement::Type {
+        type_annotation, ..
+      } => *type_annotation = annotation,
+      Statement::Effect {
+        type_annotation, ..
+      } => *type_annotation = annotation,
+      Statement::Function {
+        type_annotation, ..
+      } => *type_annotation = annotation,
     }
   }
 }
@@ -900,9 +1029,18 @@ impl Statement {
 impl fmt::Display for Statement {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
-      Statement::Expression { expression, .. } => write!(f, "{}", expression),
-      Statement::Let { binding, .. } => write!(f, "let {}", binding),
+      Statement::Expression {
+        type_annotation: None,
+        expression,
+        ..
+      } => write!(f, "{}", expression),
+      Statement::Let {
+        type_annotation: None,
+        binding,
+        ..
+      } => write!(f, "let {}", binding),
       Statement::Type {
+        type_annotation: None,
         name,
         parameters,
         variants,
@@ -938,7 +1076,10 @@ impl fmt::Display for Statement {
         }
       }
       Statement::Effect {
-        name, operations, ..
+        type_annotation: None,
+        name,
+        operations,
+        ..
       } => {
         write!(
           f,
@@ -952,6 +1093,7 @@ impl fmt::Display for Statement {
         )
       }
       Statement::Function {
+        type_annotation: None,
         name,
         parameters,
         return_type,
@@ -969,6 +1111,7 @@ impl fmt::Display for Statement {
           .unwrap_or_default();
         write!(f, "fn {}({}){} = {}", name, param_str, return_str, body)
       }
+      _ => todo!(),
     }
   }
 }
@@ -1268,30 +1411,47 @@ where
 
   fn visit_statement(&mut self, statement: &Statement) {
     match statement {
-      Statement::Expression { expression, .. } => {
+      Statement::Expression {
+        type_annotation: None,
+        expression,
+        ..
+      } => {
         self.visit_expression(expression);
       }
-      Statement::Let { binding, .. } => {
+      Statement::Let {
+        type_annotation: None,
+        binding,
+        ..
+      } => {
         self.visit_pattern(&binding.pattern);
         self.visit_expression(&binding.expression);
         if let Some(ty) = &binding.type_annotation {
           self.visit_type_expr(ty);
         }
       }
-      Statement::Type { variants, .. } => {
+      Statement::Type {
+        type_annotation: None,
+        variants,
+        ..
+      } => {
         for variant in variants {
           for field in &variant.fields {
             self.visit_type_expr(field);
           }
         }
       }
-      Statement::Effect { operations, .. } => {
+      Statement::Effect {
+        type_annotation: None,
+        operations,
+        ..
+      } => {
         for operation in operations {
           self.visit_type_expr(&operation.input_type);
           self.visit_type_expr(&operation.output_type);
         }
       }
       Statement::Function {
+        type_annotation: None,
         parameters,
         return_type,
         body,
@@ -1308,12 +1468,14 @@ where
         }
         self.visit_expression(body);
       }
+      _ => todo!(),
     }
   }
 
   fn visit_expression(&mut self, expression: &Expression) {
     match expression {
       Expression::Application {
+        type_annotation: None,
         function,
         arguments,
         ..
@@ -1323,14 +1485,28 @@ where
           self.visit_expression(arg);
         }
       }
-      Expression::BinaryOp { left, right, .. } => {
+      Expression::BinaryOp {
+        type_annotation: None,
+        left,
+        right,
+        ..
+      } => {
         self.visit_expression(left);
         self.visit_expression(right);
       }
-      Expression::UnaryOp { operand, .. } => {
+      Expression::UnaryOp {
+        type_annotation: None,
+        operand,
+        ..
+      } => {
         self.visit_expression(operand);
       }
-      Expression::Let { bindings, body, .. } => {
+      Expression::Let {
+        type_annotation: None,
+        bindings,
+        body,
+        ..
+      } => {
         for binding in bindings {
           self.visit_pattern(&binding.pattern);
           self.visit_expression(&binding.expression);
@@ -1341,6 +1517,7 @@ where
         self.visit_expression(body);
       }
       Expression::If {
+        type_annotation: None,
         condition,
         then_branch,
         else_branch,
@@ -1351,7 +1528,10 @@ where
         self.visit_expression(else_branch);
       }
       Expression::Match {
-        scrutinee, arms, ..
+        type_annotation: None,
+        scrutinee,
+        arms,
+        ..
       } => {
         self.visit_expression(scrutinee);
         for arm in arms {
@@ -1363,30 +1543,48 @@ where
         }
       }
       Expression::Lambda {
-        parameters, body, ..
+        type_annotation: None,
+        parameters,
+        body,
+        ..
       } => {
         for param in parameters {
           self.visit_pattern(param);
         }
         self.visit_expression(body);
       }
-      Expression::Tuple { elements, .. } => {
+      Expression::Tuple {
+        type_annotation: None,
+        elements,
+        ..
+      } => {
         for element in elements {
           self.visit_expression(element);
         }
       }
-      Expression::List { elements, .. } => {
+      Expression::List {
+        type_annotation: None,
+        elements,
+        ..
+      } => {
         for element in elements {
           self.visit_expression(element);
         }
       }
-      Expression::EffectOp { arguments, .. } => {
+      Expression::EffectOp {
+        type_annotation: None,
+        arguments,
+        ..
+      } => {
         for arg in arguments {
           self.visit_expression(arg);
         }
       }
       Expression::Handler {
-        expression, cases, ..
+        type_annotation: None,
+        expression,
+        cases,
+        ..
       } => {
         self.visit_expression(expression);
         for case in cases {
@@ -1558,6 +1756,7 @@ mod tests {
   fn test_expression_span() {
     let span = Span::new(SourceLocation::start(), SourceLocation::new(1, 1, 0));
     let expr = Expression::Literal {
+      type_annotation: None,
       literal: Literal::Integer { value: 42, span },
       span,
     };
@@ -1569,7 +1768,9 @@ mod tests {
   fn test_statement_span() {
     let span = Span::new(SourceLocation::start(), SourceLocation::new(1, 1, 0));
     let stmt = Statement::Expression {
+      type_annotation: None,
       expression: Expression::Literal {
+        type_annotation: None,
         literal: Literal::Integer { value: 42, span },
         span,
       },
@@ -1593,7 +1794,9 @@ mod tests {
     let mut ast = AstNode::empty();
     let span = Span::new(SourceLocation::start(), SourceLocation::new(1, 1, 0));
     let stmt = Statement::Expression {
+      type_annotation: None,
       expression: Expression::Literal {
+        type_annotation: None,
         literal: Literal::Integer { value: 42, span },
         span,
       },
@@ -1647,13 +1850,16 @@ mod tests {
   fn test_expression_display() {
     let span = Span::new(SourceLocation::start(), SourceLocation::new(1, 1, 0));
     let var_expr = Expression::Variable {
+      type_annotation: None,
       identifier: Identifier::new("x".to_string(), span),
       span,
     };
     let bin_op = Expression::BinaryOp {
+      type_annotation: None,
       left: Box::new(var_expr.clone()),
       operator: BinaryOperator::Add,
       right: Box::new(Expression::Literal {
+        type_annotation: None,
         literal: Literal::Integer { value: 1, span },
         span,
       }),
@@ -1671,11 +1877,11 @@ mod tests {
     let span1 = Span::new(SourceLocation::new(1, 1, 0), SourceLocation::new(1, 5, 4));
     let span2 = Span::new(SourceLocation::new(2, 1, 5), SourceLocation::new(2, 10, 14));
     let span3 = Span::new(SourceLocation::new(1, 3, 2), SourceLocation::new(1, 7, 6));
-    
+
     let combined = Span::from_spans(&[span1, span2, span3]).unwrap();
     assert_eq!(combined.start, SourceLocation::new(1, 1, 0));
     assert_eq!(combined.end, SourceLocation::new(2, 10, 14));
-    
+
     // Test empty spans
     assert!(Span::from_spans(&[]).is_none());
   }
@@ -1684,7 +1890,7 @@ mod tests {
   fn test_span_extend() {
     let mut span = Span::new(SourceLocation::new(1, 5, 4), SourceLocation::new(1, 10, 9));
     let other = Span::new(SourceLocation::new(1, 1, 0), SourceLocation::new(1, 15, 14));
-    
+
     span.extend(&other);
     assert_eq!(span.start, SourceLocation::new(1, 1, 0));
     assert_eq!(span.end, SourceLocation::new(1, 15, 14));
@@ -1705,7 +1911,7 @@ mod tests {
       SourceLocation::new(1, 2, 1),
     );
     let id = Identifier::from_token(&token);
-    
+
     assert_eq!(id.name, "x");
     assert_eq!(id.span, Span::from_token(&token));
   }
@@ -1720,14 +1926,17 @@ mod tests {
   #[test]
   fn test_literal_all_variants() {
     let span = Span::new(SourceLocation::start(), SourceLocation::new(1, 2, 1));
-    
+
     let int_lit = Literal::Integer { value: 42, span };
     let float_lit = Literal::Float { value: 3.14, span };
-    let str_lit = Literal::String { value: "hello".to_string(), span };
+    let str_lit = Literal::String {
+      value: "hello".to_string(),
+      span,
+    };
     let char_lit = Literal::Char { value: 'a', span };
     let bool_lit = Literal::Boolean { value: true, span };
     let unit_lit = Literal::Unit { span };
-    
+
     assert_eq!(int_lit.span(), span);
     assert_eq!(float_lit.span(), span);
     assert_eq!(str_lit.span(), span);
@@ -1739,14 +1948,17 @@ mod tests {
   #[test]
   fn test_literal_display_all_variants() {
     let span = Span::new(SourceLocation::start(), SourceLocation::new(1, 2, 1));
-    
+
     let int_lit = Literal::Integer { value: 42, span };
     let float_lit = Literal::Float { value: 3.14, span };
-    let str_lit = Literal::String { value: "hello".to_string(), span };
+    let str_lit = Literal::String {
+      value: "hello".to_string(),
+      span,
+    };
     let char_lit = Literal::Char { value: 'a', span };
     let bool_lit = Literal::Boolean { value: true, span };
     let unit_lit = Literal::Unit { span };
-    
+
     assert_eq!(int_lit.to_string(), "42");
     assert_eq!(float_lit.to_string(), "3.14");
     assert_eq!(str_lit.to_string(), "\"hello\"");
@@ -1759,20 +1971,29 @@ mod tests {
   fn test_pattern_all_variants() {
     let span = Span::new(SourceLocation::start(), SourceLocation::new(1, 1, 0));
     let id = Identifier::new("x".to_string(), span);
-    
-    let var_pattern = Pattern::Variable { identifier: id.clone(), span };
+
+    let var_pattern = Pattern::Variable {
+      identifier: id.clone(),
+      span,
+    };
     let wildcard_pattern = Pattern::Wildcard { span };
-    let literal_pattern = Pattern::Literal { 
-      literal: Literal::Integer { value: 42, span }, 
-      span 
+    let literal_pattern = Pattern::Literal {
+      literal: Literal::Integer { value: 42, span },
+      span,
     };
     let constructor_pattern = Pattern::Constructor {
       constructor: id.clone(),
       arguments: vec![],
       span,
     };
-    let tuple_pattern = Pattern::Tuple { elements: vec![], span };
-    let list_pattern = Pattern::List { elements: vec![], span };
+    let tuple_pattern = Pattern::Tuple {
+      elements: vec![],
+      span,
+    };
+    let list_pattern = Pattern::List {
+      elements: vec![],
+      span,
+    };
     let or_pattern = Pattern::Or {
       left: Box::new(var_pattern.clone()),
       right: Box::new(wildcard_pattern.clone()),
@@ -1783,7 +2004,7 @@ mod tests {
       identifier: id.clone(),
       span,
     };
-    
+
     assert_eq!(var_pattern.span(), span);
     assert_eq!(wildcard_pattern.span(), span);
     assert_eq!(literal_pattern.span(), span);
@@ -1798,20 +2019,29 @@ mod tests {
   fn test_pattern_display_all_variants() {
     let span = Span::new(SourceLocation::start(), SourceLocation::new(1, 1, 0));
     let id = Identifier::new("x".to_string(), span);
-    
-    let var_pattern = Pattern::Variable { identifier: id.clone(), span };
+
+    let var_pattern = Pattern::Variable {
+      identifier: id.clone(),
+      span,
+    };
     let wildcard_pattern = Pattern::Wildcard { span };
-    let literal_pattern = Pattern::Literal { 
-      literal: Literal::Integer { value: 42, span }, 
-      span 
+    let literal_pattern = Pattern::Literal {
+      literal: Literal::Integer { value: 42, span },
+      span,
     };
     let constructor_pattern = Pattern::Constructor {
       constructor: id.clone(),
       arguments: vec![],
       span,
     };
-    let tuple_pattern = Pattern::Tuple { elements: vec![], span };
-    let list_pattern = Pattern::List { elements: vec![], span };
+    let tuple_pattern = Pattern::Tuple {
+      elements: vec![],
+      span,
+    };
+    let list_pattern = Pattern::List {
+      elements: vec![],
+      span,
+    };
     let or_pattern = Pattern::Or {
       left: Box::new(var_pattern.clone()),
       right: Box::new(wildcard_pattern.clone()),
@@ -1822,7 +2052,7 @@ mod tests {
       identifier: id.clone(),
       span,
     };
-    
+
     assert_eq!(var_pattern.to_string(), "x");
     assert_eq!(wildcard_pattern.to_string(), "_");
     assert_eq!(literal_pattern.to_string(), "42");
@@ -1837,22 +2067,25 @@ mod tests {
   fn test_pattern_with_arguments() {
     let span = Span::new(SourceLocation::start(), SourceLocation::new(1, 1, 0));
     let id = Identifier::new("x".to_string(), span);
-    let arg_pattern = Pattern::Variable { identifier: id.clone(), span };
-    
+    let arg_pattern = Pattern::Variable {
+      identifier: id.clone(),
+      span,
+    };
+
     let constructor_pattern = Pattern::Constructor {
       constructor: id.clone(),
       arguments: vec![arg_pattern.clone()],
       span,
     };
-    let tuple_pattern = Pattern::Tuple { 
-      elements: vec![arg_pattern.clone(), arg_pattern.clone()], 
-      span 
+    let tuple_pattern = Pattern::Tuple {
+      elements: vec![arg_pattern.clone(), arg_pattern.clone()],
+      span,
     };
-    let list_pattern = Pattern::List { 
-      elements: vec![arg_pattern.clone()], 
-      span 
+    let list_pattern = Pattern::List {
+      elements: vec![arg_pattern.clone()],
+      span,
     };
-    
+
     assert_eq!(constructor_pattern.to_string(), "x(x)");
     assert_eq!(tuple_pattern.to_string(), "(x, x)");
     assert_eq!(list_pattern.to_string(), "[x]");
@@ -1862,15 +2095,24 @@ mod tests {
   fn test_type_expr_all_variants() {
     let span = Span::new(SourceLocation::start(), SourceLocation::new(1, 1, 0));
     let id = Identifier::new("Int".to_string(), span);
-    
-    let var_type = TypeExpr::Variable { name: "a".to_string(), span };
-    let constructor_type = TypeExpr::Constructor { name: id.clone(), span };
+
+    let var_type = TypeExpr::Variable {
+      name: "a".to_string(),
+      span,
+    };
+    let constructor_type = TypeExpr::Constructor {
+      name: id.clone(),
+      span,
+    };
     let function_type = TypeExpr::Function {
       parameter: Box::new(var_type.clone()),
       return_type: Box::new(constructor_type.clone()),
       span,
     };
-    let tuple_type = TypeExpr::Tuple { elements: vec![], span };
+    let tuple_type = TypeExpr::Tuple {
+      elements: vec![],
+      span,
+    };
     let list_type = TypeExpr::List {
       element_type: Box::new(constructor_type.clone()),
       span,
@@ -1885,7 +2127,7 @@ mod tests {
       output_type: Box::new(constructor_type.clone()),
       span,
     };
-    
+
     assert_eq!(var_type.span(), span);
     assert_eq!(constructor_type.span(), span);
     assert_eq!(function_type.span(), span);
@@ -1899,15 +2141,24 @@ mod tests {
   fn test_type_expr_display_all_variants() {
     let span = Span::new(SourceLocation::start(), SourceLocation::new(1, 1, 0));
     let id = Identifier::new("Int".to_string(), span);
-    
-    let var_type = TypeExpr::Variable { name: "a".to_string(), span };
-    let constructor_type = TypeExpr::Constructor { name: id.clone(), span };
+
+    let var_type = TypeExpr::Variable {
+      name: "a".to_string(),
+      span,
+    };
+    let constructor_type = TypeExpr::Constructor {
+      name: id.clone(),
+      span,
+    };
     let function_type = TypeExpr::Function {
       parameter: Box::new(var_type.clone()),
       return_type: Box::new(constructor_type.clone()),
       span,
     };
-    let tuple_type = TypeExpr::Tuple { elements: vec![], span };
+    let tuple_type = TypeExpr::Tuple {
+      elements: vec![],
+      span,
+    };
     let list_type = TypeExpr::List {
       element_type: Box::new(constructor_type.clone()),
       span,
@@ -1922,7 +2173,7 @@ mod tests {
       output_type: Box::new(constructor_type.clone()),
       span,
     };
-    
+
     assert_eq!(var_type.to_string(), "'a");
     assert_eq!(constructor_type.to_string(), "Int");
     assert_eq!(function_type.to_string(), "'a -> Int");
@@ -1935,25 +2186,25 @@ mod tests {
   #[test]
   fn test_type_expr_with_arguments() {
     let span = Span::new(SourceLocation::start(), SourceLocation::new(1, 1, 0));
-    let int_type = TypeExpr::Constructor { 
-      name: Identifier::new("Int".to_string(), span), 
-      span 
+    let int_type = TypeExpr::Constructor {
+      name: Identifier::new("Int".to_string(), span),
+      span,
     };
-    let str_type = TypeExpr::Constructor { 
-      name: Identifier::new("String".to_string(), span), 
-      span 
+    let str_type = TypeExpr::Constructor {
+      name: Identifier::new("String".to_string(), span),
+      span,
     };
-    
-    let tuple_type = TypeExpr::Tuple { 
-      elements: vec![int_type.clone(), str_type.clone()], 
-      span 
+
+    let tuple_type = TypeExpr::Tuple {
+      elements: vec![int_type.clone(), str_type.clone()],
+      span,
     };
     let generic_type = TypeExpr::Generic {
       constructor: Identifier::new("Option".to_string(), span),
       arguments: vec![int_type.clone()],
       span,
     };
-    
+
     assert_eq!(tuple_type.to_string(), "(Int, String)");
     assert_eq!(generic_type.to_string(), "Option<Int>");
   }
@@ -1962,68 +2213,83 @@ mod tests {
   fn test_expression_all_variants() {
     let span = Span::new(SourceLocation::start(), SourceLocation::new(1, 1, 0));
     let id = Identifier::new("x".to_string(), span);
-    
+
     let literal_expr = Expression::Literal {
+      type_annotation: None,
       literal: Literal::Integer { value: 42, span },
       span,
     };
-    let var_expr = Expression::Variable { identifier: id.clone(), span };
+    let var_expr = Expression::Variable {
+      type_annotation: None,
+      identifier: id.clone(),
+      span,
+    };
     let app_expr = Expression::Application {
+      type_annotation: None,
       function: Box::new(var_expr.clone()),
       arguments: vec![],
       span,
     };
     let bin_op_expr = Expression::BinaryOp {
+      type_annotation: None,
       left: Box::new(var_expr.clone()),
       operator: BinaryOperator::Add,
       right: Box::new(literal_expr.clone()),
       span,
     };
     let unary_op_expr = Expression::UnaryOp {
+      type_annotation: None,
       operator: UnaryOperator::Neg,
       operand: Box::new(var_expr.clone()),
       span,
     };
-    let let_expr = Expression::Let {
-      bindings: vec![],
-      body: Box::new(literal_expr.clone()),
-      span,
-    };
     let if_expr = Expression::If {
+      type_annotation: None,
       condition: Box::new(var_expr.clone()),
       then_branch: Box::new(literal_expr.clone()),
       else_branch: Box::new(literal_expr.clone()),
       span,
     };
     let match_expr = Expression::Match {
+      type_annotation: None,
       scrutinee: Box::new(var_expr.clone()),
       arms: vec![],
       span,
     };
     let lambda_expr = Expression::Lambda {
+      type_annotation: None,
       parameters: vec![],
       body: Box::new(literal_expr.clone()),
       span,
     };
-    let tuple_expr = Expression::Tuple { elements: vec![], span };
-    let list_expr = Expression::List { elements: vec![], span };
+    let tuple_expr = Expression::Tuple {
+      type_annotation: None,
+      elements: vec![],
+      span,
+    };
+    let list_expr = Expression::List {
+      type_annotation: None,
+      elements: vec![],
+      span,
+    };
     let effect_op_expr = Expression::EffectOp {
+      type_annotation: None,
       operation: id.clone(),
       arguments: vec![],
       span,
     };
     let handler_expr = Expression::Handler {
+      type_annotation: None,
       expression: Box::new(literal_expr.clone()),
       cases: vec![],
       span,
     };
-    
+
     assert_eq!(literal_expr.span(), span);
     assert_eq!(var_expr.span(), span);
     assert_eq!(app_expr.span(), span);
     assert_eq!(bin_op_expr.span(), span);
     assert_eq!(unary_op_expr.span(), span);
-    assert_eq!(let_expr.span(), span);
     assert_eq!(if_expr.span(), span);
     assert_eq!(match_expr.span(), span);
     assert_eq!(lambda_expr.span(), span);
@@ -2037,83 +2303,158 @@ mod tests {
   fn test_expression_display_complex() {
     let span = Span::new(SourceLocation::start(), SourceLocation::new(1, 1, 0));
     let id = Identifier::new("x".to_string(), span);
-    
+
     let app_expr = Expression::Application {
-      function: Box::new(Expression::Variable { identifier: id.clone(), span }),
+      type_annotation: None,
+      function: Box::new(Expression::Variable {
+        type_annotation: None,
+        identifier: id.clone(),
+        span,
+      }),
       arguments: vec![
-        Expression::Literal { literal: Literal::Integer { value: 1, span }, span },
-        Expression::Literal { literal: Literal::Integer { value: 2, span }, span },
+        Expression::Literal {
+          type_annotation: None,
+          literal: Literal::Integer { value: 1, span },
+          span,
+        },
+        Expression::Literal {
+          type_annotation: None,
+          literal: Literal::Integer { value: 2, span },
+          span,
+        },
       ],
       span,
     };
     let let_expr = Expression::Let {
-      bindings: vec![
-        Binding::new(
-          Pattern::Variable { identifier: id.clone(), span },
-          Expression::Literal { literal: Literal::Integer { value: 42, span }, span },
-          None,
+      type_annotation: None,
+      bindings: vec![Binding::new(
+        Pattern::Variable {
+          identifier: id.clone(),
           span,
-        ),
-      ],
-      body: Box::new(Expression::Variable { identifier: id.clone(), span }),
+        },
+        Expression::Literal {
+          type_annotation: None,
+          literal: Literal::Integer { value: 42, span },
+          span,
+        },
+        None,
+        span,
+      )],
+      body: Box::new(Expression::Variable {
+        type_annotation: None,
+        identifier: id.clone(),
+        span,
+      }),
       span,
     };
     let match_expr = Expression::Match {
-      scrutinee: Box::new(Expression::Variable { identifier: id.clone(), span }),
-      arms: vec![
-        MatchArm::new(
-          Pattern::Variable { identifier: id.clone(), span },
-          Expression::Literal { literal: Literal::Integer { value: 0, span }, span },
-          None,
+      type_annotation: None,
+      scrutinee: Box::new(Expression::Variable {
+        type_annotation: None,
+        identifier: id.clone(),
+        span,
+      }),
+      arms: vec![MatchArm::new(
+        Pattern::Variable {
+          identifier: id.clone(),
           span,
-        ),
-      ],
+        },
+        Expression::Literal {
+          type_annotation: None,
+          literal: Literal::Integer { value: 0, span },
+          span,
+        },
+        None,
+        span,
+      )],
       span,
     };
     let lambda_expr = Expression::Lambda {
+      type_annotation: None,
       parameters: vec![
-        Pattern::Variable { identifier: id.clone(), span },
-        Pattern::Variable { identifier: id.clone(), span },
+        Pattern::Variable {
+          identifier: id.clone(),
+          span,
+        },
+        Pattern::Variable {
+          identifier: id.clone(),
+          span,
+        },
       ],
-      body: Box::new(Expression::Literal { literal: Literal::Integer { value: 0, span }, span }),
+      body: Box::new(Expression::Literal {
+        type_annotation: None,
+        literal: Literal::Integer { value: 0, span },
+        span,
+      }),
       span,
     };
     let tuple_expr = Expression::Tuple {
+      type_annotation: None,
       elements: vec![
-        Expression::Literal { literal: Literal::Integer { value: 1, span }, span },
-        Expression::Literal { literal: Literal::Integer { value: 2, span }, span },
+        Expression::Literal {
+          type_annotation: None,
+          literal: Literal::Integer { value: 1, span },
+          span,
+        },
+        Expression::Literal {
+          type_annotation: None,
+          literal: Literal::Integer { value: 2, span },
+          span,
+        },
       ],
       span,
     };
     let list_expr = Expression::List {
+      type_annotation: None,
       elements: vec![
-        Expression::Literal { literal: Literal::Integer { value: 1, span }, span },
-        Expression::Literal { literal: Literal::Integer { value: 2, span }, span },
+        Expression::Literal {
+          type_annotation: None,
+          literal: Literal::Integer { value: 1, span },
+          span,
+        },
+        Expression::Literal {
+          type_annotation: None,
+          literal: Literal::Integer { value: 2, span },
+          span,
+        },
       ],
       span,
     };
     let effect_op_expr = Expression::EffectOp {
+      type_annotation: None,
       operation: id.clone(),
-      arguments: vec![
-        Expression::Literal { literal: Literal::Integer { value: 42, span }, span },
-      ],
+      arguments: vec![Expression::Literal {
+        type_annotation: None,
+        literal: Literal::Integer { value: 42, span },
+        span,
+      }],
       span,
     };
     let handler_expr = Expression::Handler {
-      expression: Box::new(Expression::Literal { literal: Literal::Integer { value: 0, span }, span }),
-      cases: vec![
-        HandlerCase::new(
-          id.clone(),
-          Pattern::Variable { identifier: id.clone(), span },
-          Expression::Literal { literal: Literal::Integer { value: 42, span }, span },
+      type_annotation: None,
+      expression: Box::new(Expression::Literal {
+        type_annotation: None,
+        literal: Literal::Integer { value: 0, span },
+        span,
+      }),
+      cases: vec![HandlerCase::new(
+        id.clone(),
+        Pattern::Variable {
+          identifier: id.clone(),
           span,
-        ),
-      ],
+        },
+        Expression::Literal {
+          type_annotation: None,
+          literal: Literal::Integer { value: 42, span },
+          span,
+        },
+        span,
+      )],
       span,
     };
-    
+
     assert_eq!(app_expr.to_string(), "x(1, 2)");
-    assert_eq!(let_expr.to_string(), "let x = 0 in x");
+    assert_eq!(let_expr.to_string(), "let x = 42 in x");
     assert_eq!(match_expr.to_string(), "match x with x => 0");
     assert_eq!(lambda_expr.to_string(), "\\x x -> 0");
     assert_eq!(tuple_expr.to_string(), "(1, 2)");
@@ -2155,6 +2496,7 @@ mod tests {
       span,
     };
     let expression = Expression::Literal {
+      type_annotation: None,
       literal: Literal::Integer { value: 42, span },
       span,
     };
@@ -2162,9 +2504,14 @@ mod tests {
       name: Identifier::new("Int".to_string(), span),
       span,
     });
-    
-    let binding = Binding::new(pattern.clone(), expression.clone(), type_annotation.clone(), span);
-    
+
+    let binding = Binding::new(
+      pattern.clone(),
+      expression.clone(),
+      type_annotation.clone(),
+      span,
+    );
+
     assert_eq!(binding.pattern, pattern);
     assert_eq!(binding.expression, expression);
     assert_eq!(binding.type_annotation, type_annotation);
@@ -2179,10 +2526,11 @@ mod tests {
       span,
     };
     let expression = Expression::Literal {
+      type_annotation: None,
       literal: Literal::Integer { value: 42, span },
       span,
     };
-    
+
     let binding_without_type = Binding::new(pattern.clone(), expression.clone(), None, span);
     let binding_with_type = Binding::new(
       pattern.clone(),
@@ -2193,7 +2541,7 @@ mod tests {
       }),
       span,
     );
-    
+
     assert_eq!(binding_without_type.to_string(), "x = 42");
     assert_eq!(binding_with_type.to_string(), "x: Int = 42");
   }
@@ -2206,24 +2554,28 @@ mod tests {
       span,
     };
     let expression = Expression::Literal {
+      type_annotation: None,
       literal: Literal::Integer { value: 42, span },
       span,
     };
     let guard = Some(Expression::BinaryOp {
+      type_annotation: None,
       left: Box::new(Expression::Variable {
+        type_annotation: None,
         identifier: Identifier::new("x".to_string(), span),
         span,
       }),
       operator: BinaryOperator::Gt,
       right: Box::new(Expression::Literal {
+        type_annotation: None,
         literal: Literal::Integer { value: 0, span },
         span,
       }),
       span,
     });
-    
+
     let match_arm = MatchArm::new(pattern.clone(), expression.clone(), guard.clone(), span);
-    
+
     assert_eq!(match_arm.pattern, pattern);
     assert_eq!(match_arm.expression, expression);
     assert_eq!(match_arm.guard, guard);
@@ -2238,21 +2590,25 @@ mod tests {
       span,
     };
     let expression = Expression::Literal {
+      type_annotation: None,
       literal: Literal::Integer { value: 42, span },
       span,
     };
-    
+
     let match_arm_without_guard = MatchArm::new(pattern.clone(), expression.clone(), None, span);
     let match_arm_with_guard = MatchArm::new(
       pattern.clone(),
       expression.clone(),
       Some(Expression::BinaryOp {
+        type_annotation: None,
         left: Box::new(Expression::Variable {
+          type_annotation: None,
           identifier: Identifier::new("x".to_string(), span),
           span,
         }),
         operator: BinaryOperator::Gt,
         right: Box::new(Expression::Literal {
+          type_annotation: None,
           literal: Literal::Integer { value: 0, span },
           span,
         }),
@@ -2260,7 +2616,7 @@ mod tests {
       }),
       span,
     );
-    
+
     assert_eq!(match_arm_without_guard.to_string(), "x => 42");
     assert_eq!(match_arm_with_guard.to_string(), "x when x > 0 => 42");
   }
@@ -2274,12 +2630,14 @@ mod tests {
       span,
     };
     let expression = Expression::Literal {
+      type_annotation: None,
       literal: Literal::Integer { value: 42, span },
       span,
     };
-    
-    let handler_case = HandlerCase::new(operation.clone(), pattern.clone(), expression.clone(), span);
-    
+
+    let handler_case =
+      HandlerCase::new(operation.clone(), pattern.clone(), expression.clone(), span);
+
     assert_eq!(handler_case.operation, operation);
     assert_eq!(handler_case.pattern, pattern);
     assert_eq!(handler_case.expression, expression);
@@ -2295,12 +2653,14 @@ mod tests {
       span,
     };
     let expression = Expression::Literal {
+      type_annotation: None,
       literal: Literal::Integer { value: 42, span },
       span,
     };
-    
-    let handler_case = HandlerCase::new(operation.clone(), pattern.clone(), expression.clone(), span);
-    
+
+    let handler_case =
+      HandlerCase::new(operation.clone(), pattern.clone(), expression.clone(), span);
+
     assert_eq!(handler_case.to_string(), "Get x => 42");
   }
 
@@ -2308,42 +2668,59 @@ mod tests {
   fn test_statement_all_variants() {
     let span = Span::new(SourceLocation::start(), SourceLocation::new(1, 1, 0));
     let id = Identifier::new("x".to_string(), span);
-    
+
     let expr_stmt = Statement::Expression {
+      type_annotation: None,
       expression: Expression::Literal {
+        type_annotation: None,
         literal: Literal::Integer { value: 42, span },
         span,
       },
       span,
     };
     let let_stmt = Statement::Let {
+      type_annotation: None,
       binding: Binding::new(
-        Pattern::Variable { identifier: id.clone(), span },
-        Expression::Literal { literal: Literal::Integer { value: 42, span }, span },
+        Pattern::Variable {
+          identifier: id.clone(),
+          span,
+        },
+        Expression::Literal {
+          type_annotation: None,
+          literal: Literal::Integer { value: 42, span },
+          span,
+        },
         None,
         span,
       ),
       span,
     };
     let type_stmt = Statement::Type {
+      type_annotation: None,
       name: id.clone(),
       parameters: vec![],
       variants: vec![],
       span,
     };
     let effect_stmt = Statement::Effect {
+      type_annotation: None,
       name: id.clone(),
       operations: vec![],
       span,
     };
     let function_stmt = Statement::Function {
+      type_annotation: None,
       name: id.clone(),
       parameters: vec![],
       return_type: None,
-      body: Expression::Literal { literal: Literal::Integer { value: 42, span }, span },
+      body: Expression::Literal {
+        type_annotation: None,
+        literal: Literal::Integer { value: 42, span },
+        span,
+      },
       span,
     };
-    
+
     assert_eq!(expr_stmt.span(), span);
     assert_eq!(let_stmt.span(), span);
     assert_eq!(type_stmt.span(), span);
@@ -2355,42 +2732,59 @@ mod tests {
   fn test_statement_display_all_variants() {
     let span = Span::new(SourceLocation::start(), SourceLocation::new(1, 1, 0));
     let id = Identifier::new("x".to_string(), span);
-    
+
     let expr_stmt = Statement::Expression {
+      type_annotation: None,
       expression: Expression::Literal {
+        type_annotation: None,
         literal: Literal::Integer { value: 42, span },
         span,
       },
       span,
     };
     let let_stmt = Statement::Let {
+      type_annotation: None,
       binding: Binding::new(
-        Pattern::Variable { identifier: id.clone(), span },
-        Expression::Literal { literal: Literal::Integer { value: 42, span }, span },
+        Pattern::Variable {
+          identifier: id.clone(),
+          span,
+        },
+        Expression::Literal {
+          type_annotation: None,
+          literal: Literal::Integer { value: 42, span },
+          span,
+        },
         None,
         span,
       ),
       span,
     };
     let type_stmt = Statement::Type {
+      type_annotation: None,
       name: id.clone(),
       parameters: vec![],
       variants: vec![],
       span,
     };
     let effect_stmt = Statement::Effect {
+      type_annotation: None,
       name: id.clone(),
       operations: vec![],
       span,
     };
     let function_stmt = Statement::Function {
+      type_annotation: None,
       name: id.clone(),
       parameters: vec![],
       return_type: None,
-      body: Expression::Literal { literal: Literal::Integer { value: 42, span }, span },
+      body: Expression::Literal {
+        type_annotation: None,
+        literal: Literal::Integer { value: 42, span },
+        span,
+      },
       span,
     };
-    
+
     assert_eq!(expr_stmt.to_string(), "42");
     assert_eq!(let_stmt.to_string(), "let x = 42");
     assert_eq!(type_stmt.to_string(), "type x = ");
@@ -2403,27 +2797,37 @@ mod tests {
     let span = Span::new(SourceLocation::start(), SourceLocation::new(1, 1, 0));
     let id = Identifier::new("x".to_string(), span);
     let param_id = Identifier::new("y".to_string(), span);
-    
+
     let type_stmt = Statement::Type {
+      type_annotation: None,
       name: id.clone(),
       parameters: vec![param_id.clone()],
       variants: vec![],
       span,
     };
     let function_stmt = Statement::Function {
+      type_annotation: None,
       name: id.clone(),
-      parameters: vec![
-        FunctionParameter::new(
-          Pattern::Variable { identifier: param_id.clone(), span },
-          None,
+      parameters: vec![FunctionParameter::new(
+        Pattern::Variable {
+          identifier: param_id.clone(),
           span,
-        ),
-      ],
-      return_type: Some(TypeExpr::Constructor { name: id.clone(), span }),
-      body: Expression::Literal { literal: Literal::Integer { value: 42, span }, span },
+        },
+        None,
+        span,
+      )],
+      return_type: Some(TypeExpr::Constructor {
+        name: id.clone(),
+        span,
+      }),
+      body: Expression::Literal {
+        type_annotation: None,
+        literal: Literal::Integer { value: 42, span },
+        span,
+      },
       span,
     };
-    
+
     assert_eq!(type_stmt.to_string(), "type x<y> = ");
     assert_eq!(function_stmt.to_string(), "fn x(y) -> x = 42");
   }
@@ -2432,12 +2836,13 @@ mod tests {
   fn test_type_variant_creation() {
     let span = Span::new(SourceLocation::start(), SourceLocation::new(1, 1, 0));
     let name = Identifier::new("Some".to_string(), span);
-    let fields = vec![
-      TypeExpr::Constructor { name: Identifier::new("Int".to_string(), span), span },
-    ];
-    
+    let fields = vec![TypeExpr::Constructor {
+      name: Identifier::new("Int".to_string(), span),
+      span,
+    }];
+
     let variant = TypeVariant::new(name.clone(), fields.clone(), span);
-    
+
     assert_eq!(variant.name, name);
     assert_eq!(variant.fields, fields);
     assert_eq!(variant.span, span);
@@ -2447,17 +2852,23 @@ mod tests {
   fn test_type_variant_display() {
     let span = Span::new(SourceLocation::start(), SourceLocation::new(1, 1, 0));
     let name = Identifier::new("Some".to_string(), span);
-    
+
     let unit_variant = TypeVariant::new(name.clone(), vec![], span);
     let field_variant = TypeVariant::new(
       name.clone(),
       vec![
-        TypeExpr::Constructor { name: Identifier::new("Int".to_string(), span), span },
-        TypeExpr::Constructor { name: Identifier::new("String".to_string(), span), span },
+        TypeExpr::Constructor {
+          name: Identifier::new("Int".to_string(), span),
+          span,
+        },
+        TypeExpr::Constructor {
+          name: Identifier::new("String".to_string(), span),
+          span,
+        },
       ],
       span,
     );
-    
+
     assert_eq!(unit_variant.to_string(), "Some");
     assert_eq!(field_variant.to_string(), "Some(Int, String)");
   }
@@ -2466,11 +2877,18 @@ mod tests {
   fn test_effect_operation_creation() {
     let span = Span::new(SourceLocation::start(), SourceLocation::new(1, 1, 0));
     let name = Identifier::new("Get".to_string(), span);
-    let input_type = TypeExpr::Constructor { name: Identifier::new("Unit".to_string(), span), span };
-    let output_type = TypeExpr::Constructor { name: Identifier::new("Int".to_string(), span), span };
-    
-    let operation = EffectOperation::new(name.clone(), input_type.clone(), output_type.clone(), span);
-    
+    let input_type = TypeExpr::Constructor {
+      name: Identifier::new("Unit".to_string(), span),
+      span,
+    };
+    let output_type = TypeExpr::Constructor {
+      name: Identifier::new("Int".to_string(), span),
+      span,
+    };
+
+    let operation =
+      EffectOperation::new(name.clone(), input_type.clone(), output_type.clone(), span);
+
     assert_eq!(operation.name, name);
     assert_eq!(operation.input_type, input_type);
     assert_eq!(operation.output_type, output_type);
@@ -2481,11 +2899,18 @@ mod tests {
   fn test_effect_operation_display() {
     let span = Span::new(SourceLocation::start(), SourceLocation::new(1, 1, 0));
     let name = Identifier::new("Get".to_string(), span);
-    let input_type = TypeExpr::Constructor { name: Identifier::new("Unit".to_string(), span), span };
-    let output_type = TypeExpr::Constructor { name: Identifier::new("Int".to_string(), span), span };
-    
-    let operation = EffectOperation::new(name.clone(), input_type.clone(), output_type.clone(), span);
-    
+    let input_type = TypeExpr::Constructor {
+      name: Identifier::new("Unit".to_string(), span),
+      span,
+    };
+    let output_type = TypeExpr::Constructor {
+      name: Identifier::new("Int".to_string(), span),
+      span,
+    };
+
+    let operation =
+      EffectOperation::new(name.clone(), input_type.clone(), output_type.clone(), span);
+
     assert_eq!(operation.to_string(), "Get: Unit -> Int");
   }
 
@@ -2500,9 +2925,9 @@ mod tests {
       name: Identifier::new("Int".to_string(), span),
       span,
     });
-    
+
     let param = FunctionParameter::new(pattern.clone(), type_annotation.clone(), span);
-    
+
     assert_eq!(param.pattern, pattern);
     assert_eq!(param.type_annotation, type_annotation);
     assert_eq!(param.span, span);
@@ -2515,7 +2940,7 @@ mod tests {
       identifier: Identifier::new("x".to_string(), span),
       span,
     };
-    
+
     let param_without_type = FunctionParameter::new(pattern.clone(), None, span);
     let param_with_type = FunctionParameter::new(
       pattern.clone(),
@@ -2525,7 +2950,7 @@ mod tests {
       }),
       span,
     );
-    
+
     assert_eq!(param_without_type.to_string(), "x");
     assert_eq!(param_with_type.to_string(), "x: Int");
   }
@@ -2534,7 +2959,7 @@ mod tests {
   fn test_declaration_all_variants() {
     let span = Span::new(SourceLocation::start(), SourceLocation::new(1, 1, 0));
     let id = Identifier::new("x".to_string(), span);
-    
+
     let type_decl = Declaration::Type {
       name: id.clone(),
       parameters: vec![],
@@ -2550,10 +2975,14 @@ mod tests {
       name: id.clone(),
       parameters: vec![],
       return_type: None,
-      body: Expression::Literal { literal: Literal::Integer { value: 42, span }, span },
+      body: Expression::Literal {
+        type_annotation: None,
+        literal: Literal::Integer { value: 42, span },
+        span,
+      },
       span,
     };
-    
+
     assert_eq!(type_decl.span(), span);
     assert_eq!(effect_decl.span(), span);
     assert_eq!(function_decl.span(), span);
@@ -2563,7 +2992,7 @@ mod tests {
   fn test_declaration_display_all_variants() {
     let span = Span::new(SourceLocation::start(), SourceLocation::new(1, 1, 0));
     let id = Identifier::new("x".to_string(), span);
-    
+
     let type_decl = Declaration::Type {
       name: id.clone(),
       parameters: vec![],
@@ -2579,10 +3008,14 @@ mod tests {
       name: id.clone(),
       parameters: vec![],
       return_type: None,
-      body: Expression::Literal { literal: Literal::Integer { value: 42, span }, span },
+      body: Expression::Literal {
+        type_annotation: None,
+        literal: Literal::Integer { value: 42, span },
+        span,
+      },
       span,
     };
-    
+
     assert_eq!(type_decl.to_string(), "type x = ");
     assert_eq!(effect_decl.to_string(), "effect x {\n  \n}");
     assert_eq!(function_decl.to_string(), "fn x() = 42");
@@ -2591,9 +3024,12 @@ mod tests {
   #[test]
   fn test_ast_node_empty() {
     let ast = AstNode::empty();
-    
+
     assert_eq!(ast.statements.len(), 0);
-    assert_eq!(ast.span(), Span::new(SourceLocation::start(), SourceLocation::start()));
+    assert_eq!(
+      ast.span(),
+      Span::new(SourceLocation::start(), SourceLocation::start())
+    );
   }
 
   #[test]
@@ -2601,25 +3037,35 @@ mod tests {
     let mut ast = AstNode::empty();
     let span1 = Span::new(SourceLocation::new(1, 1, 0), SourceLocation::new(1, 5, 4));
     let span2 = Span::new(SourceLocation::new(2, 1, 5), SourceLocation::new(2, 10, 14));
-    
+
     let stmt1 = Statement::Expression {
+      type_annotation: None,
       expression: Expression::Literal {
-        literal: Literal::Integer { value: 42, span: span1 },
+        type_annotation: None,
+        literal: Literal::Integer {
+          value: 42,
+          span: span1,
+        },
         span: span1,
       },
       span: span1,
     };
     let stmt2 = Statement::Expression {
+      type_annotation: None,
       expression: Expression::Literal {
-        literal: Literal::Integer { value: 100, span: span2 },
+        type_annotation: None,
+        literal: Literal::Integer {
+          value: 100,
+          span: span2,
+        },
         span: span2,
       },
       span: span2,
     };
-    
+
     ast.add_statement(stmt1);
     ast.add_statement(stmt2);
-    
+
     assert_eq!(ast.statements.len(), 2);
     assert_eq!(ast.span().start, SourceLocation::new(1, 1, 0));
     assert_eq!(ast.span().end, SourceLocation::new(2, 10, 14));
@@ -2629,30 +3075,37 @@ mod tests {
   fn test_ast_node_display() {
     let mut ast = AstNode::empty();
     let span = Span::new(SourceLocation::start(), SourceLocation::new(1, 1, 0));
-    
+
     let stmt1 = Statement::Expression {
+      type_annotation: None,
       expression: Expression::Literal {
+        type_annotation: None,
         literal: Literal::Integer { value: 42, span },
         span,
       },
       span,
     };
     let stmt2 = Statement::Let {
+      type_annotation: None,
       binding: Binding::new(
         Pattern::Variable {
           identifier: Identifier::new("x".to_string(), span),
           span,
         },
-        Expression::Literal { literal: Literal::Integer { value: 100, span }, span },
+        Expression::Literal {
+          type_annotation: None,
+          literal: Literal::Integer { value: 100, span },
+          span,
+        },
         None,
         span,
       ),
       span,
     };
-    
+
     ast.add_statement(stmt1);
     ast.add_statement(stmt2);
-    
+
     let expected = "42\nlet x = 100";
     assert_eq!(ast.to_string(), expected);
   }
@@ -2661,7 +3114,7 @@ mod tests {
   fn test_ast_visitor_trait() {
     // Test that the trait can be implemented
     struct TestVisitor;
-    
+
     impl crate::parser::visitor::Visitor for TestVisitor {
       fn visit_ast(&mut self, _ast: &crate::parser::ast::AstNode) {}
       fn visit_statement(&mut self, _statement: &crate::parser::ast::Statement) {}
@@ -2670,12 +3123,12 @@ mod tests {
       fn visit_type_expr(&mut self, _type_expr: &crate::parser::ast::TypeExpr) {}
       fn visit_declaration(&mut self, _declaration: &crate::parser::ast::Declaration) {}
     }
-    
+
     // Test that the default implementation works
     let mut visitor = TestVisitor;
     let ast = AstNode::empty();
     visitor.visit_ast(&ast);
-    
+
     // This test ensures the trait can be implemented and used
     assert!(true);
   }

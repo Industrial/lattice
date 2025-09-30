@@ -162,10 +162,10 @@ pub struct Lexer {
   current_location: SourceLocation,
   /// Configuration for the lexer behavior
   config: LexerConfig,
-  /// Internal logos lexer for tokenization
-  logos_lexer: Option<TokenKind>,
-  /// Current position in the logos lexer
-  logos_position: usize,
+  /// Current position in the source
+  position: usize,
+  /// Cached tokens for iteration
+  cached_tokens: Option<Vec<Token>>,
 }
 
 impl Lexer {
@@ -175,8 +175,8 @@ impl Lexer {
       source: source.to_string(),
       current_location: SourceLocation::start(),
       config: LexerConfig::default(),
-      logos_lexer: None,
-      logos_position: 0,
+      position: 0,
+      cached_tokens: None,
     }
   }
 
@@ -186,8 +186,8 @@ impl Lexer {
       source,
       current_location: SourceLocation::start(),
       config,
-      logos_lexer: None,
-      logos_position: 0,
+      position: 0,
+      cached_tokens: None,
     }
   }
 
@@ -364,18 +364,6 @@ impl Lexer {
     }
   }
 
-  /// Check if a token should be included based on the configuration
-  fn should_include_token(&self, token: &Token) -> bool {
-    match token.kind {
-      TokenKind::LineComment
-      | TokenKind::BlockComment
-      | TokenKind::DocComment
-      | TokenKind::DocBlockComment => self.config.include_comments,
-      TokenKind::Whitespace => self.config.include_whitespace,
-      _ => true,
-    }
-  }
-
   /// Attempt to recover from a specific error type
   pub fn try_recover_from_error(
     &self,
@@ -459,8 +447,17 @@ impl Lexer {
   /// Reset the lexer to the beginning of the source
   pub fn reset(&mut self) {
     self.current_location = SourceLocation::start();
-    self.logos_lexer = None;
-    self.logos_position = 0;
+    self.position = 0;
+    self.cached_tokens = None;
+  }
+
+  /// Check if a token should be included based on the configuration
+  fn should_include_token(&self, token: &Token) -> bool {
+    match token.kind {
+      TokenKind::Whitespace => self.config.include_whitespace,
+      TokenKind::LineComment | TokenKind::BlockComment => self.config.include_comments,
+      _ => true, // Include all other tokens
+    }
   }
 
   /// Peek at the next token without consuming it
@@ -493,15 +490,31 @@ impl Iterator for Lexer {
   type Item = Result<Token, LexerError>;
 
   fn next(&mut self) -> Option<Self::Item> {
-    // For now, we'll use a simple approach
-    // In a real implementation, this would maintain state between calls
-    if self.is_eof() {
+    // Initialize cached tokens if not already done
+    if self.cached_tokens.is_none() {
+      match self.tokenize() {
+        Ok(tokens) => {
+          self.cached_tokens = Some(tokens);
+        }
+        Err(error) => {
+          return Some(Err(error));
+        }
+      }
+    }
+
+    // Get the cached tokens
+    let tokens = self.cached_tokens.as_ref()?;
+
+    // Check if we've reached the end
+    if self.position >= tokens.len() {
       return None;
     }
 
-    // This is a simplified implementation
-    // The real implementation would maintain state and return tokens one by one
-    None
+    // Get the current token
+    let token = &tokens[self.position];
+    self.position += 1;
+
+    Some(Ok(token.clone()))
   }
 }
 
@@ -994,8 +1007,8 @@ mod tests {
     // Reset
     lexer.reset();
     assert_eq!(lexer.current_location, initial_location);
-    assert_eq!(lexer.logos_lexer, None);
-    assert_eq!(lexer.logos_position, 0);
+    assert_eq!(lexer.cached_tokens, None);
+    assert_eq!(lexer.position, 0);
   }
 
   #[test]
@@ -1053,8 +1066,17 @@ mod tests {
   fn test_lexer_iterator() {
     let mut lexer = Lexer::from_str("let x = 42");
 
-    // The current implementation always returns None
-    // This test verifies the behavior doesn't panic
+    // Test that the iterator works correctly
+    let first_token = lexer.next();
+    assert!(first_token.is_some());
+    
+    // Continue iterating through tokens
+    let mut token_count = 0;
+    while lexer.next().is_some() {
+      token_count += 1;
+    }
+    
+    // Should have consumed all tokens
     assert_eq!(lexer.next(), None);
     assert_eq!(lexer.next(), None);
   }

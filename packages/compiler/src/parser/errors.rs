@@ -107,9 +107,7 @@ impl From<crate::lexer::LexerError> for ParseError {
   fn from(error: crate::lexer::LexerError) -> Self {
     ParseError::new(
       ParseErrorKind::LexerError,
-      error
-        .location()
-        .unwrap_or_else(|| crate::lexer::SourceLocation::start()),
+      crate::lexer::SourceLocation::start(),
     )
     .with_context(format!("Lexer error: {}", error))
   }
@@ -375,17 +373,19 @@ impl ErrorReporter {
     let file_name = self.file_name.as_deref().unwrap_or("input");
     let file = SimpleFile::new(file_name, self.source.clone());
 
-    let diagnostic = error.to_diagnostic(0);
+    let diagnostic = Diagnostic::error()
+      .with_message(error.kind.to_string())
+      .with_labels(vec![Label::primary(
+        (),
+        error.location.offset..error.location.offset + 1,
+      )
+      .with_message(error.kind.description())]);
 
     let mut writer = termcolor::Buffer::ansi();
-    term::emit(
-      &mut writer,
-      &term::Config::default(),
-      &file,
-      &diagnostic,
-    )?;
+    term::emit(&mut writer, &term::Config::default(), &file, &diagnostic)?;
 
-    let output = String::from_utf8_lossy(&writer.into_inner());
+    let buffer = writer.into_inner();
+    let output = String::from_utf8_lossy(&buffer);
     eprintln!("{}", output);
 
     Ok(())

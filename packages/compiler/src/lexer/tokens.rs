@@ -3,6 +3,7 @@
 //! This module provides the core data structures for representing lexical tokens
 //! and their source locations in the Lattice language.
 
+use chumsky::Span;
 use logos::Logos;
 use std::fmt;
 
@@ -94,6 +95,34 @@ impl Token {
   /// Get the span of the token (start to end location)
   pub fn span(&self) -> (SourceLocation, SourceLocation) {
     (self.start, self.end)
+  }
+}
+
+impl Span for Token {
+  type Context = ();
+  type Offset = usize;
+
+  fn new(context: Self::Context, range: std::ops::Range<Self::Offset>) -> Self {
+    // This is a placeholder implementation - we'll need to create a proper Token
+    // from the range, but for now we'll create a dummy token
+    Token {
+      kind: TokenKind::Identifier,
+      text: String::new(),
+      start: SourceLocation::new(1, 1, range.start),
+      end: SourceLocation::new(1, 1, range.end),
+    }
+  }
+
+  fn context(&self) -> Self::Context {
+    ()
+  }
+
+  fn start(&self) -> Self::Offset {
+    self.start.offset
+  }
+
+  fn end(&self) -> Self::Offset {
+    self.end.offset
   }
 }
 
@@ -241,6 +270,8 @@ pub enum TokenKind {
   FatArrow,
   #[token("_")]
   Underscore,
+  #[token("as")]
+  As,
 
   // Comments
   #[regex(r"//.*")]
@@ -342,6 +373,7 @@ impl fmt::Display for TokenKind {
       TokenKind::Arrow => write!(f, "Arrow"),
       TokenKind::FatArrow => write!(f, "FatArrow"),
       TokenKind::Underscore => write!(f, "Underscore"),
+      TokenKind::As => write!(f, "As"),
       TokenKind::LineComment => write!(f, "LineComment"),
       TokenKind::BlockComment => write!(f, "BlockComment"),
       TokenKind::DocComment => write!(f, "DocComment"),
@@ -717,6 +749,7 @@ mod tests {
     assert_eq!(TokenKind::Arrow.to_string(), "Arrow");
     assert_eq!(TokenKind::FatArrow.to_string(), "FatArrow");
     assert_eq!(TokenKind::Underscore.to_string(), "Underscore");
+    assert_eq!(TokenKind::As.to_string(), "As");
   }
 
   #[test]
@@ -1050,6 +1083,7 @@ mod tests {
       TokenKind::Arrow,
       TokenKind::FatArrow,
       TokenKind::Underscore,
+      TokenKind::As,
       TokenKind::LineComment,
       TokenKind::BlockComment,
       TokenKind::DocComment,

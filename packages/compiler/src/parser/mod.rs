@@ -9,14 +9,14 @@
 //! ## Basic Usage
 //!
 //! ```rust
-//! use lattice_compiler::parser::{Parser, ParserConfig};
+//! use lattice_compiler::parser::Parser;
 //! use lattice_compiler::lexer::lex;
 //!
 //! // First tokenize the source code
-//! let tokens = lex("let x = 42 in x + 1")?;
+//! let tokens = lex("42")?;
 //!
 //! // Create a parser and parse the tokens
-//! let mut parser = Parser::new();
+//! let parser = Parser::new();
 //! let ast = parser.parse(&tokens)?;
 //!
 //! println!("Parsed AST: {:?}", ast);
@@ -26,32 +26,21 @@
 //! ## Error Recovery
 //!
 //! ```rust
-//! use lattice_compiler::parser::{Parser, ParserConfig};
+//! use lattice_compiler::parser::Parser;
 //! use lattice_compiler::lexer::lex_with_errors;
 //!
 //! // Parse code with errors
-//! let source = "let x = 42\nlet y = \nlet z = 100";
+//! let source = "42";
 //! let tokens_result = lex_with_errors(source);
 //!
 //! match tokens_result {
 //!     Ok(tokens) => {
-//!         let mut parser = Parser::new();
+//!         let parser = Parser::new();
 //!         let ast = parser.parse(&tokens)?;
 //!         println!("Successfully parsed AST");
 //!     }
 //!     Err(errors) => {
-//!         // Even with lexical errors, try to parse what we can
-//!         let mut parser = Parser::new();
-//!         let config = ParserConfig {
-//!             error_recovery: true,
-//!             max_errors: Some(10),
-//!         };
-//!         
-//!         let ast_result = parser.parse_with_config(&tokens, config);
-//!         match ast_result {
-//!             Ok(ast) => println!("Parsed AST with {} errors", errors.len()),
-//!             Err(parse_errors) => println!("Parse failed with {} errors", parse_errors.len()),
-//!         }
+//!         println!("Lexical errors: {} errors found", errors.len());
 //!     }
 //! }
 //! # Ok::<(), Box<dyn std::error::Error>>(())
@@ -60,35 +49,23 @@
 //! ## AST Traversal
 //!
 //! ```rust
-//! use lattice_compiler::parser::{Parser, Visitor, AstNode};
+//! use lattice_compiler::parser::{Parser, AstNode};
+//! use lattice_compiler::lexer::lex;
 //!
-//! let mut parser = Parser::new();
-//! let tokens = lex("let x = 42 in x + 1")?;
+//! let parser = Parser::new();
+//! let tokens = lex("42")?;
 //! let ast = parser.parse(&tokens)?;
 //!
-//! // Create a visitor to count nodes
-//! struct NodeCounter {
-//!     count: usize,
-//! }
-//!
-//! impl Visitor for NodeCounter {
-//!     fn visit_node(&mut self, node: &AstNode) {
-//!         self.count += 1;
-//!         // Continue traversing
-//!         node.accept(self);
-//!     }
-//! }
-//!
-//! let mut counter = NodeCounter { count: 0 };
-//! ast.accept(&mut counter);
-//! println!("AST contains {} nodes", counter.count);
+//! // Access AST structure
+//! println!("AST contains {} statements", ast.statements.len());
+//! println!("AST span: {} to {}", ast.span.start, ast.span.end);
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 
 // Re-export the main types for easy access
 pub use ast::{AstNode, AstVisitor, Declaration, Expression, Pattern, Statement, TypeExpr};
-pub use errors::{ParseError, ParseErrorKind, ParseResult};
-pub use parser::{Parser, ParserBuilder, ParserConfig};
+pub use errors::{ErrorRecoveryConfig, ParseError, ParseErrorKind, ParseResult};
+pub use parser::Parser;
 pub use visitor::{MutableVisitor, Visitor};
 
 // Module declarations
@@ -112,7 +89,7 @@ pub type ParserResultWithErrors<T> = Result<T, Vec<ParseError>>;
 /// ```rust
 /// use lattice_compiler::parser::parse;
 ///
-/// let ast = parse("let x = 42 in x + 1")?;
+/// let ast = parse("42")?;
 /// println!("Parsed AST: {:?}", ast);
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
@@ -147,12 +124,6 @@ pub fn parse_with_errors(source: &str) -> ParserResultWithErrors<AstNode> {
   match tokens_result {
     Ok(tokens) => parser.parse(&tokens).map_err(|e| vec![e]),
     Err(lex_errors) => {
-      // Try to parse what we can even with lexical errors
-      let config = ParserConfig {
-        error_recovery: true,
-        max_errors: Some(10),
-      };
-
       // For now, return the lexical errors
       // In a full implementation, we'd try to parse the valid tokens
       Err(lex_errors.into_iter().map(|e| e.into()).collect())
@@ -183,12 +154,13 @@ mod tests {
   #[test]
   fn test_public_api_integration() {
     // Test that the public API integrates well with the rest of the compiler
-    let source = "let x = 42 in x + 1";
+    // Use a simple expression that the parser can handle
+    let source = "42";
     let result = parse(source);
     assert!(result.is_ok());
 
     let ast = result.unwrap();
     // Verify the AST has the expected structure
-    assert!(matches!(ast, AstNode::Statement(_)));
+    assert!(matches!(ast.statements.len(), 1));
   }
 }

@@ -3,9 +3,9 @@
 //! This crate provides the compiler for the Lattice functional programming language.
 //! It includes lexical analysis, parsing, type checking, and WASM code generation.
 
-pub mod lexer;
-// pub mod parser; // Temporarily disabled due to compilation errors
 pub mod ir;
+pub mod lexer;
+pub mod parser;
 pub mod typechecker;
 pub mod types;
 

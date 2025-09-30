@@ -69,4 +69,9 @@ crate-type = ["lib"]
 [[bin]]
 name = "latticec"
 path = "src/main.rs"
+required-features = ["std"]
+
+[[bin]]
+name = "debug_parser"
+path = "debug_parser.rs"
 required-features = ["std"] 
