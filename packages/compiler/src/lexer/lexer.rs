@@ -1069,13 +1069,13 @@ mod tests {
     // Test that the iterator works correctly
     let first_token = lexer.next();
     assert!(first_token.is_some());
-    
+
     // Continue iterating through tokens
     let mut token_count = 0;
     while lexer.next().is_some() {
       token_count += 1;
     }
-    
+
     // Should have consumed all tokens
     assert_eq!(lexer.next(), None);
     assert_eq!(lexer.next(), None);
