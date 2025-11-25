@@ -451,7 +451,7 @@
               "7.3"
             ],
             "details": "Using the visitor pattern, implement three core optimizations: 1) Constant folding: evaluate constant expressions at compile time, 2) Dead code elimination: remove unused variables and unreachable code, 3) Function inlining: replace function calls with the function body where beneficial. Design each optimization as a separate pass that can be applied independently. Implement a framework for running optimization passes in sequence.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Create test cases for each optimization type with before/after IR examples. Verify that constant expressions are properly evaluated. Test that unused code is correctly identified and removed. Verify that function inlining preserves program semantics."
           },
           {
@@ -1724,7 +1724,7 @@
     ],
     "metadata": {
       "created": "2025-08-11T22:13:45.171Z",
-      "updated": "2025-11-25T23:16:51.092Z",
+      "updated": "2025-11-25T23:19:36.965Z",
       "description": "Tasks for master context"
     }
   }
