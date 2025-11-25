@@ -439,7 +439,7 @@
               "7.1"
             ],
             "details": "Create a visitor trait with methods for each IR node type. Implement default methods that recursively traverse the IR tree. Add helper methods for common transformations. Provide both immutable visitors (for analysis) and mutable visitors (for transformations). Include utilities for collecting information during traversal. Ensure the visitor pattern supports the implementation of optimizations.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test the visitor pattern with simple traversals that count node types. Implement and test a basic transformation using the visitor pattern. Verify that all IR node types are properly visited."
           },
           {
@@ -1724,7 +1724,7 @@
     ],
     "metadata": {
       "created": "2025-08-11T22:13:45.171Z",
-      "updated": "2025-11-25T23:15:37.523Z",
+      "updated": "2025-11-25T23:16:51.092Z",
       "description": "Tasks for master context"
     }
   }
