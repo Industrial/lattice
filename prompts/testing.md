@@ -395,4 +395,30 @@ This testing strategy should be implemented at the highest level of intellectual
 7. **Be Practical**: Provide actionable and implementable testing strategies
 8. **Be Sustainable**: Create sustainable and maintainable testing practices
 
-Remember that the goal is to create a comprehensive testing strategy that ensures code quality, reliability, and maintainability while respecting and enhancing the existing architectural patterns. This requires operating at the highest possible level of software engineering excellence and intellectual sophistication. 
+Remember that the goal is to create a comprehensive testing strategy that ensures code quality, reliability, and maintainability while respecting and enhancing the existing architectural patterns. This requires operating at the highest possible level of software engineering excellence and intellectual sophistication.
+
+---
+
+## Quick Reference: Test Coverage Process
+
+A simple iterative process for improving test coverage:
+
+1. Run `bin/test`
+2. Find the least covered file
+3. Make sure it's 100% covered with `proptest` tests
+4. Go to step 1
+
+---
+
+## Quick Reference: Test Fixing Process
+
+A simple process for fixing failing tests:
+
+1. Run `bin/test`
+2. Are there failures or errors?
+   - **If yes**:
+     1. Take the FIRST failing test
+     2. Understand what changed in the implementation
+     3. Provide 100% covering tests of all permutations of the file tested
+   - **If no**: Done!
+3. Repeat until all tests pass
