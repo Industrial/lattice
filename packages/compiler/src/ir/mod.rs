@@ -9,13 +9,16 @@
 //! - [`visitor`] - Visitor pattern for IR traversal and transformation
 //! - [`converter`] - AST to IR conversion in A-normal form
 //! - [`optimizations`] - Optimization passes (constant folding, DCE, inlining)
+//! - [`wasm`] - WebAssembly code generation support
 
 pub mod converter;
 pub mod nodes;
 pub mod optimizations;
 pub mod visitor;
+pub mod wasm;
 
 pub use converter::*;
 pub use nodes::*;
 pub use optimizations::*;
 pub use visitor::*;
+pub use wasm::*;

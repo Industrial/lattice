@@ -409,7 +409,7 @@
         "dependencies": [
           5
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -463,7 +463,7 @@
               "7.4"
             ],
             "details": "Add WASM type annotations to IR nodes. Implement lowering passes that transform high-level IR constructs into forms that map directly to WASM instructions. Handle memory management concerns in the IR. Add support for importing/exporting functions to/from WASM. Implement representation strategies for Lattice's algebraic data types in WASM. Create utilities for mapping Lattice types to WASM types.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test the WASM annotations by verifying type compatibility. Create test cases that exercise the lowering transformations. Verify that complex Lattice constructs are properly represented in a WASM-friendly form. Test the memory management strategy with various data structures."
           }
         ]
@@ -1724,7 +1724,7 @@
     ],
     "metadata": {
       "created": "2025-08-11T22:13:45.171Z",
-      "updated": "2025-11-25T23:19:36.965Z",
+      "updated": "2025-11-25T23:22:51.711Z",
       "description": "Tasks for master context"
     }
   }
